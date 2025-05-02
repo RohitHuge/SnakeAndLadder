@@ -1,5 +1,6 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 const App: React.FC = () => {
 const [email, setEmail] = useState('');
 const [isLoading, setIsLoading] = useState(false);
@@ -132,9 +133,9 @@ Sending Reset Link...
 <div className="mt-6 text-center">
 <p className="text-sm text-gray-600">
 Remember your password?{' '}
-<a href="https://readdy.ai/home/b5a91de3-2610-4529-909a-6192c2cca62c/710e9074-0bac-4a86-8bf4-8386167a9017" data-readdy="true" className="font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer">
+<Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer">
 Back to Login
-</a>
+</Link>
 </p>
 </div>
 </div>
@@ -151,7 +152,7 @@ Need help? Contact support@snakeladder.game
 <p>© {new Date().getFullYear()} Snake & Ladder Online. All rights reserved.</p>
 </footer>
 {/* Custom Animation Styles */}
-<style jsx>{`
+<style>{`
 @keyframes bounce-slow {
 0%, 100% {
 transform: translateY(0);
