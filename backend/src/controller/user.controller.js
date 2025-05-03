@@ -6,9 +6,10 @@ import {uploadOnCloudinary} from "../utils/cloudinary.js"
 
 const registerUser = asyncHandler(async (req, res) => {
     // Validate request body
-    const { username, email, password } = req.body;
-    if([username, email].some(field => field?.trim() === "")) {
-        throw new ApiError(400, "Please fill all the fields");
+    const { username, email, password} = req.body;
+    // Check if all required fields are present
+    if([username, email, password].some(field => !field?.trim())) {
+        throw new ApiError(400, "Username, email and password are required");
     }
 
     const existedUser = await User.findOne({
