@@ -1,7 +1,7 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-const App: React.FC = () => {
+const App = () => {
 const [email, setEmail] = useState('');
 const [password, setPassword] = useState('');
 const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +32,7 @@ isValid = false;
 setValidationErrors(errors);
 return isValid;
 };
-const handleSubmit = (e: React.FormEvent) => {
+const handleSubmit = (e) => {
 e.preventDefault();
 setError('');
 if (validateForm()) {

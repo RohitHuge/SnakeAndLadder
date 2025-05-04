@@ -1,31 +1,34 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-const App: React.FC = () => {
-const [username, setUsername] = useState('');
-const [email, setEmail] = useState('');
-const [password, setPassword] = useState('');
-const [confirmPassword, setConfirmPassword] = useState('');
-const [showPassword, setShowPassword] = useState(false);
-const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-const [avatar, setAvatar] = useState<File | null>(null);
-const [avatarPreview, setAvatarPreview] = useState<string>('');
-const [isLoading, setIsLoading] = useState(false);
-const [error, setError] = useState('');
-const fileInputRef = useRef<HTMLInputElement>(null);
-const [validationErrors, setValidationErrors] = useState({
-username: '',
-email: '',
-password: '',
-confirmPassword: ''
-});
-const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+import { useNavigate } from 'react-router-dom';
+
+const Registration = () => {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [avatar, setAvatar] = useState(null);  // Remove TypeScript syntax
+  const [avatarPreview, setAvatarPreview] = useState('');  // Remove TypeScript syntax
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const fileInputRef = useRef(null);  // Remove TypeScript syntax
+  const navigate = useNavigate();  // Fix naming convention
+  const [validationErrors, setValidationErrors] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+const handleAvatarChange = (e) => {
 if (e.target.files && e.target.files[0]) {
 const file = e.target.files[0];
 setAvatar(file);
 const reader = new FileReader();
 reader.onloadend = () => {
-setAvatarPreview(reader.result as string);
+setAvatarPreview(reader.result);
 };
 reader.readAsDataURL(file);
 }
@@ -71,19 +74,50 @@ isValid = false;
 setValidationErrors(errors);
 return isValid;
 };
-const handleSubmit = (e: React.FormEvent) => {
-e.preventDefault();
-setError('');
-if (validateForm()) {
-setIsLoading(true);
-// Simulate API call
-setTimeout(() => {
-setIsLoading(false);
-// For demo purposes, simulate a successful registration
-// In a real app, you would send the data to your backend
-window.location.href = '/home';
-}, 1500);
-}
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+  
+  if (validateForm()) {
+    setIsLoading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('email', email);
+      formData.append('password', password);
+      
+      if (avatar) {
+        formData.append('avatar', avatar);
+      }
+
+      const response = await fetch('http://localhost:8000/api/v1/users/register', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+        body:formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      // Registration successful
+      setIsLoading(false);
+      setError('Registration successful! Redirecting to login...');
+      
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+      
+    } catch (err) {
+      setIsLoading(false);
+      setError(err.message || 'Registration failed. Please try again.');
+    }
+  }
 };
 return (
 <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-white">
@@ -122,12 +156,18 @@ Create Your Account
 {/* Registration Form */}
 <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-8 transition-all duration-300">
 {error && (
-<div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-<p className="flex items-center">
-<i className="fas fa-exclamation-circle mr-2"></i>
-{error}
-</p>
-</div>
+  <div className={`mb-4 p-3 rounded-lg flex items-center ${
+    error.includes('successful') 
+      ? 'bg-green-100 border border-green-400 text-green-700'
+      : 'bg-red-100 border border-red-400 text-red-700'
+  }`}>
+    <i className={`mr-2 fas ${
+      error.includes('successful') 
+        ? 'fa-check-circle'
+        : 'fa-exclamation-circle'
+    }`}></i>
+    {error}
+  </div>
 )}
 <form onSubmit={handleSubmit} className="space-y-5">
 {/* Username Field */}
@@ -375,4 +415,6 @@ animation: bounce-slow 3s infinite;
 </div>
 );
 };
-export default App
+// Remove the extra App component closure
+
+export default Registration;

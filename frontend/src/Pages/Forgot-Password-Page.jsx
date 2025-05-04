@@ -1,16 +1,16 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-const App: React.FC = () => {
+const App = () => {
 const [email, setEmail] = useState('');
 const [isLoading, setIsLoading] = useState(false);
 const [message, setMessage] = useState({ type: '', text: '' });
 const [validationError, setValidationError] = useState('');
-const validateEmail = (email: string) => {
+const validateEmail = (email) => {
 const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 return re.test(String(email).toLowerCase());
 };
-const handleSubmit = (e: React.FormEvent) => {
+const handleSubmit = (e) => {
 e.preventDefault();
 setValidationError('');
 setMessage({ type: '', text: '' });

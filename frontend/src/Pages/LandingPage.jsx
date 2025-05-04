@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const App: React.FC = () => {
+const App = () => {
   const navigate = useNavigate();
 
   const handlePlayClick = () => {
