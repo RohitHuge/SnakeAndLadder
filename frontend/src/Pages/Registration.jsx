@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 const Registration = () => {
   const [username, setUsername] = useState('');
@@ -91,7 +92,7 @@ const handleSubmit = async (e) => {
         formData.append('avatar', avatar);
       }
 
-      const response = await fetch('http://localhost:8000/api/v1/users/register', {
+      const response = await fetch(`${API_BASE_URL}/users/register`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
