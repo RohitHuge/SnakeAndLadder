@@ -91,6 +91,7 @@ const handleSubmit = async (e) => {
       if (avatar) {
         formData.append('avatar', avatar);
       }
+      console.log(`${API_BASE_URL}/users/register`);
 
       const response = await fetch(`${API_BASE_URL}/users/register`, {
         method: 'POST',

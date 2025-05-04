@@ -6,16 +6,15 @@ import {User } from "../models/user.model.js"
 
 
 
-const generateAcessAndRefreshToken = async (user, res) => {
+const generateAcessAndRefreshToken = async (user) => {
     try {
-        const accessToken = await user.generateAccessToken();
-        const refreshToken = await user.generateRefreshToken();
+        const accessToken = await user.createAccessToken();
+        const refreshToken = await user.createRefreshToken();
 
         user.refreshToken = refreshToken;
         await user.save({validateBeforeSave: false});
 
         return { accessToken, refreshToken };
-
     } catch (error) {
         throw new ApiError(500, "Failed to generate access and refresh token");
     }
@@ -89,7 +88,7 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid email or password");
     }
 
-    const { accessToken, refreshToken } = await generateAcessAndRefreshToken(user, res);
+    const { accessToken, refreshToken } = await generateAcessAndRefreshToken(user);
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 

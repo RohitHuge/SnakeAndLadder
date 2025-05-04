@@ -1,7 +1,10 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
+
 const App = () => {
+const navigate = useNavigate();
 const [email, setEmail] = useState('');
 const [password, setPassword] = useState('');
 const [showPassword, setShowPassword] = useState(false);
@@ -32,22 +35,40 @@ isValid = false;
 setValidationErrors(errors);
 return isValid;
 };
-const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
 e.preventDefault();
 setError('');
 if (validateForm()) {
 setIsLoading(true);
-// Simulate API call
-setTimeout(() => {
-setIsLoading(false);
-// For demo purposes, simulate a successful login
-// In a real app, you would verify credentials with your backend
-if (email === 'demo@example.com' && password === 'password') {
-window.location.href = '/home';
-} else {
-setError('Invalid email or password');
+try {
+const response = await fetch(`${API_BASE_URL}/users/login`, {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+},
+body: JSON.stringify({
+email,
+password
+}),
+credentials: 'include' // This is important for handling cookies
+});
+const data = await response.json();
+if (response.ok) {
+// Store the token if you're using JWT
+if (data.token) {
+localStorage.setItem('token', data.token);
 }
-}, 1500);
+// Redirect to home page or dashboard
+navigate('/home');
+} else {
+setError(data.message || 'Login failed. Please check your credentials.');
+}
+} catch (err) {
+setError('An error occurred. Please try again later.');
+console.error('Login error:', err);
+} finally {
+setIsLoading(false);
+}
 }
 };
 return (
