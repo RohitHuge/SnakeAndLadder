@@ -129,87 +129,82 @@ const Home = () => {
           </div>
 
           {/* Game actions grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {/* Create Game - Primary action */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6 h-full border-2 border-purple-500 cursor-pointer">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                    <i className="fas fa-plus text-purple-600 text-2xl"></i>
-                  </div>
-                  <h3 className="text-xl font-bold text-purple-700 mb-2">Create Game</h3>
-                  <p className="text-gray-600">Start a new game and invite friends to join</p>
-                  <button className="mt-6 bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-button transition-colors cursor-pointer whitespace-nowrap">
-                    Create Now
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Join Game - Primary action */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6 h-full border-2 border-purple-500 cursor-pointer">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                    <i className="fas fa-door-open text-purple-600 text-2xl"></i>
-                  </div>
-                  <h3 className="text-xl font-bold text-purple-700 mb-2">Join Game</h3>
-                  <p className="text-gray-600">Enter a game code to join an existing game</p>
-                  <div className="mt-6 flex w-full max-w-xs">
-                    <input 
-                      type="text" 
-                      placeholder="Enter game code" 
-                      className="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                    />
-                    <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-r-lg transition-colors cursor-pointer whitespace-nowrap">
-                      Join
+          <div className="grid grid-cols-1 gap-6 mb-12">
+            {/* Primary actions row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Create Game - Primary action */}
+              <div className="col-span-1">
+                <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6 h-full border-2 border-purple-500 cursor-pointer">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                      <i className="fas fa-plus text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 className="text-xl font-bold text-purple-700 mb-2">Create Game</h3>
+                    <p className="text-gray-600">Start a new game and invite friends to join</p>
+                    <button className="mt-6 bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-button transition-colors cursor-pointer whitespace-nowrap">
+                      Create Now
                     </button>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Friends */}
-            <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                  <i className="fas fa-user-friends text-blue-600 text-xl"></i>
+              {/* Join Game - Primary action */}
+              <div className="col-span-1">
+                <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6 h-full border-2 border-purple-500 cursor-pointer">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                      <i className="fas fa-door-open text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 className="text-xl font-bold text-purple-700 mb-2">Join Game</h3>
+                    <p className="text-gray-600">Enter a game code to join an existing game</p>
+                    <div className="mt-6 flex w-full max-w-xs">
+                      <input 
+                        type="text" 
+                        placeholder="Enter game code" 
+                        className="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                      />
+                      <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-r-lg transition-colors cursor-pointer whitespace-nowrap">
+                        Join
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">Friends</h3>
-                <p className="text-gray-600 text-sm">Manage friends and invitations</p>
               </div>
             </div>
 
-            {/* Profile */}
-            <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <i className="fas fa-user-circle text-green-600 text-xl"></i>
+            {/* Secondary actions row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Friends */}
+              <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                    <i className="fas fa-user-friends text-blue-600 text-xl"></i>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Friends</h3>
+                  <p className="text-gray-600 text-sm">Manage friends and invitations</p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">Profile</h3>
-                <p className="text-gray-600 text-sm">View and edit your profile</p>
               </div>
-            </div>
 
-            {/* Settings */}
-            <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
-                  <i className="fas fa-cog text-yellow-600 text-xl"></i>
+              {/* Settings */}
+              <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                    <i className="fas fa-cog text-yellow-600 text-xl"></i>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Settings</h3>
+                  <p className="text-gray-600 text-sm">Customize your game preferences</p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">Settings</h3>
-                <p className="text-gray-600 text-sm">Customize your game preferences</p>
               </div>
-            </div>
 
-            {/* History */}
-            <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                  <i className="fas fa-history text-red-600 text-xl"></i>
+              {/* History */}
+              <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                    <i className="fas fa-history text-red-600 text-xl"></i>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">History</h3>
+                  <p className="text-gray-600 text-sm">View your past games and stats</p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">History</h3>
-                <p className="text-gray-600 text-sm">View your past games and stats</p>
               </div>
             </div>
           </div>
