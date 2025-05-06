@@ -16,25 +16,45 @@ const navigate = useNavigate();
   });
  
   useEffect(() => {
-    const makeGameRoom = async () => {
-      const response = await fetch(`${API_BASE_URL}/game/create-room`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ user: user }),
-      });
-      if(!response.ok){
-        throw new Error('Failed to create game room');
-      }
-      const data = await response.json();
-      setroomCode(data.data.roomCode);
-    };
-
-    makeGameRoom();
-  }, []);
+    if (location.state.isHost) {
+      const makeGameRoom = async () => {
+        const response = await fetch(`${API_BASE_URL}/game/create-room`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
+        });
+        if(!response.ok){
+          throw new Error('Failed to create game room');
+        }
+        const data = await response.json();
+        setroomCode(data.data.roomCode);
+      };
+  
+      makeGameRoom();
+    }
+    else{
+      const joinGameRoom = async () => {
+        const response = await fetch(`${API_BASE_URL}/game/join-room`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ roomCode: location.state.roomCode }),
+        });
+        if(!response.ok){
+          throw new Error('Failed to join game room');
+        }
+        const data = await response.json();
+        setroomCode(data.data.roomCode);
+      };
+      joinGameRoom();
+    }
+    }, []);
   
   const [friends] = useState([
     {
@@ -88,6 +108,13 @@ const navigate = useNavigate();
   const handleStartGame = () => {
     console.log('Starting game...');
     // In a real app, this would initiate the game
+  };
+
+  const [inputValue, setInputValue] = useState('');
+
+  // Example of handling input change
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
   };
 
   return (
@@ -308,6 +335,16 @@ const navigate = useNavigate();
           </div>
         </footer>
       </div>
+      {/* Add this input element where you need it */}
+      <input 
+        type="text" 
+        value={inputValue}
+        onChange={handleInputChange}
+        className="border border-gray-300 rounded px-4 py-2"
+        placeholder="Enter something..."
+      />
+      {/* You can use the value anywhere in your component */}
+      <p>Current input value: {inputValue}</p>
     </div>
   );
 };

@@ -15,6 +15,7 @@ const Home = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [roomCode, setRoomCode] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -51,6 +52,18 @@ const Home = () => {
         user : user
       }
     });
+  }
+
+  const handleJoinGame = async () => {
+    navigate('/game-lobby',
+       {
+      state: {
+        isHost: false,
+        user : user,
+        roomCode : roomCode
+      }
+    }
+    );
   }
 
   const handleLogout = async () => {
@@ -169,11 +182,12 @@ const Home = () => {
                     <p className="text-gray-600">Enter a game code to join an existing game</p>
                     <div className="mt-6 flex w-full max-w-xs">
                       <input 
+                        onChange={(e) => setRoomCode(e.target.value)}
                         type="text" 
                         placeholder="Enter game code" 
                         className="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                       />
-                      <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-r-lg transition-colors cursor-pointer whitespace-nowrap">
+                      <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-r-lg transition-colors cursor-pointer whitespace-nowrap" onClick={handleJoinGame}>
                         Join
                       </button>
                     </div>
