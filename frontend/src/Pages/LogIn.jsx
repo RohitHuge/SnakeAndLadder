@@ -16,60 +16,67 @@ email: '',
 password: ''
 });
 const validateForm = () => {
-const errors = {
-email: '',
-password: ''
+  const errors = {
+    email: '',
+    password: ''
+  };
+  let isValid = true;
+
+  if (!email.trim()) {
+    errors.email = 'Email is required';
+    isValid = false;
+  } else if (!/\S+@\S+\.\S+/.test(email)) {
+    errors.email = 'Email is invalid';
+    isValid = false;
+  }
+
+  if (!password) {
+    errors.password = 'Password is required';
+    isValid = false;
+  }
+
+  setValidationErrors(errors);
+  return isValid;
 };
-let isValid = true;
-if (!email.trim()) {
-errors.email = 'Email is required';
-isValid = false;
-} else if (!/\S+@\S+\.\S+/.test(email)) {
-errors.email = 'Email is invalid';
-isValid = false;
-}
-if (!password) {
-errors.password = 'Password is required';
-isValid = false;
-}
-setValidationErrors(errors);
-return isValid;
-};
+
 const handleSubmit = async (e) => {
-e.preventDefault();
-setError('');
-if (validateForm()) {
-setIsLoading(true);
-try {
-const response = await fetch(`${API_BASE_URL}/users/login`, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-},
-body: JSON.stringify({
-email,
-password
-}),
-credentials: 'include' // This is important for handling cookies
-});
-const data = await response.json();
-if (response.ok) {
-// Store the token if you're using JWT
-if (data.token) {
-localStorage.setItem('token', data.token);
-}
-// Redirect to home page or dashboard
-navigate('/home');
-} else {
-setError(data.message || 'Login failed. Please check your credentials.');
-}
-} catch (err) {
-setError('An error occurred. Please try again later.');
-console.error('Login error:', err);
-} finally {
-setIsLoading(false);
-}
-}
+  e.preventDefault();
+  setError('');
+
+  if (validateForm()) {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+        credentials: 'include' // This is important for handling cookies
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store the token if you're using JWT
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
+        // Redirect to home page or dashboard
+        navigate('/home');
+      } else {
+        setError(data.message || 'Login failed. Please check your credentials.');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again later.');
+      console.error('Login error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 };
 return (
 <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-white">

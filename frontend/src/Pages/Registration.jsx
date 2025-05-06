@@ -91,7 +91,6 @@ const handleSubmit = async (e) => {
       if (avatar) {
         formData.append('avatar', avatar);
       }
-      console.log(`${API_BASE_URL}/users/register`);
 
       const response = await fetch(`${API_BASE_URL}/users/register`, {
         method: 'POST',
@@ -99,7 +98,7 @@ const handleSubmit = async (e) => {
           'Accept': 'application/json',
         },
         credentials: 'include',
-        body:formData,
+        body: formData,
       });
 
       if (!response.ok) {

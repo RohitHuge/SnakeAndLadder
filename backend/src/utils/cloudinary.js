@@ -3,13 +3,15 @@ import fs from 'fs';
 
 
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,})
+cloudinary.config({ 
+    cloud_name: 'dstevgxwe', 
+    api_key: '145798137123186', 
+    api_secret: 'Wi2lViTuZY2WyQFdpIP6CD13g-c'
+})
 
   const uploadOnCloudinary = async (localFilePath) => {
     try {
+        console.log(process.env.CLOUDINARY_NAME, process.env.CLOUDINARY_API_KEY, process.env.CLOUDINARY_API_SECRET,"2")
         if (!localFilePath) return console.log("Error in getting file path")
         //upload the file on cloudinary
         const response = await cloudinary.uploader.upload(localFilePath, {
