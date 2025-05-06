@@ -124,7 +124,7 @@ const Home = () => {
         <main>
           {/* Welcome message */}
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-semibold text-purple-800 mb-2">Welcome back, {user.username}!</h2>
+            <h2 className="text-2xl font-semibold text-purple-800 mb-2">Welcome back, {user.username.toUpperCase()}!</h2>
             <p className="text-gray-600">What would you like to do today?</p>
           </div>
 

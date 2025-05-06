@@ -44,10 +44,14 @@ const registerUser = asyncHandler(async (req, res) => {
     }
     
     const avatarUrl = req.files?.avatar?.[0]?.path
-    const avatar = await uploadOnCloudinary(avatarUrl);
-    if (!avatar) {
-        throw new ApiError(500, "Failed to upload avatar");
+    let avatar;
+    if (avatarUrl) {
+        avatar = await uploadOnCloudinary(avatarUrl);
     }
+    else {
+        avatar = "";
+    }
+
 
     const user = await User.create({
          username,
