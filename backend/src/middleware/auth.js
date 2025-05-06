@@ -8,7 +8,7 @@ import { User } from "../models/user.model.js";
 export const verifyJWT = asyncHandler(async (req, _, next) => {
     
   try {
-      const accessToken = req.cookies?.accessToken || req.headers(authorization).replace("Bearer ", "");
+      const accessToken = req.cookies?.accessToken || req.headers["authorization"]?.replace("Bearer ", "");
   
       if(!accessToken) {
           throw new ApiError(401, "Please login to access this resource 1 :: failed to get cookie");

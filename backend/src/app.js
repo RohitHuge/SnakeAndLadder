@@ -17,11 +17,13 @@ app.use(cookieParser())
 //router imports 
 
 import userRouter from "./routes/user.routes.js"
+import gameRouter from "./routes/game.routes.js"
 
 
 // router implementation
 
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/game", gameRouter);
 
 
 export { app };

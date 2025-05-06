@@ -44,6 +44,15 @@ const Home = () => {
     fetchUserData();
   }, []);
 
+  const handleCreateGame = async () => {
+    navigate('/game-lobby', {
+      state: {
+        isHost: true,
+        user : user
+      }
+    });
+  }
+
   const handleLogout = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/users/logout`, {
@@ -77,6 +86,7 @@ const Home = () => {
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 to-white relative overflow-hidden">
@@ -141,7 +151,7 @@ const Home = () => {
                     </div>
                     <h3 className="text-xl font-bold text-purple-700 mb-2">Create Game</h3>
                     <p className="text-gray-600">Start a new game and invite friends to join</p>
-                    <button className="mt-6 bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-button transition-colors cursor-pointer whitespace-nowrap">
+                    <button className="mt-6 bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-button transition-colors cursor-pointer whitespace-nowrap" onClick={handleCreateGame}>
                       Create Now
                     </button>
                   </div>
@@ -288,4 +298,3 @@ const Home = () => {
 };
 
 export default Home;
-
