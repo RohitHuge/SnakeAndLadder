@@ -1,34 +1,82 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
-const App = () => {
+const Home = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState({
-    username: 'PlayerOne',
-    avatar: 'https://readdy.ai/api/search-image?query=cute%20cartoon%20game%20character%20avatar%20with%20purple%20background%2C%20digital%20art%2C%20friendly%20face%2C%20game%20icon%20style%2C%20minimalist%20design%2C%20clean%20background%2C%20high%20quality&width=80&height=80&seq=avatar123&orientation=squarish'
+    username: '',
+    avatarUrl: '',
+    gamesPlayed: 0,
+    gamesWon: 0,
+    status: 'offline'
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Mock authentication check
   useEffect(() => {
-    // In a real app, you would check for JWT token here
-    const token = localStorage.getItem('game_token');
-    if (!token) {
-      // Redirect to login if no token
-      console.log('No token found, would redirect to login');
-      // window.location.href = '/login';
-    } else {
-      // Fetch user data
-      // This would be an API call in a real app
-      console.log('User authenticated');
-    }
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/current-user`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+
+        const { data: userData } = await response.json();
+        setUser(userData);
+      } catch (err) {
+        setError('Failed to load user data');
+        console.error('Error fetching user data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('game_token');
-    // Redirect to login
-    console.log('Logged out, would redirect to login');
-    // window.location.href = '/login';
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        navigate('/login');
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 to-white relative overflow-hidden">
@@ -56,7 +104,7 @@ const App = () => {
           <div className="flex items-center">
             <div className="flex items-center mr-6">
               <img 
-                src={user.avatar} 
+                src={user.avatarUrl || 'https://readdy.ai/api/search-image?query=cute%20cartoon%20game%20character%20avatar%20with%20purple%20background%2C%20digital%20art%2C%20friendly%20face%2C%20game%20icon%20style%2C%20minimalist%20design%2C%20clean%20background%2C%20high%20quality&width=80&height=80&seq=avatar123&orientation=squarish'} 
                 alt="User Avatar" 
                 className="w-10 h-10 rounded-full border-2 border-purple-400"
               />
@@ -244,5 +292,5 @@ const App = () => {
   );
 };
 
-export default App;
+export default Home;
 

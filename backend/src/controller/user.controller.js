@@ -92,7 +92,7 @@ const loginUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: true,
     }
-    
+
     return res.status(200)
         .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
@@ -117,5 +117,10 @@ const logoutUser = asyncHandler(async (req, res) => {
     
 })
 
+const getCurrentUser = asyncHandler(async (req, res) => {
+    const user = req.user;
+    return res.status(200).json(new ApiResponse(200, user, "Current user fetched successfully"));
+})
 
-export { registerUser, loginUser, logoutUser }; 
+
+export { registerUser, loginUser, logoutUser, getCurrentUser }; 

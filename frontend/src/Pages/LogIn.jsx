@@ -66,6 +66,7 @@ const handleSubmit = async (e) => {
           localStorage.setItem('token', data.token);
         }
         // Redirect to home page or dashboard
+        
         navigate('/home');
       } else {
         setError(data.message || 'Login failed. Please check your credentials.');
