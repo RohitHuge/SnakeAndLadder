@@ -24,9 +24,7 @@ const createGameRoom = asyncHandler(async (req, res) => {
             turn: user._id,
         })
         await gameRoom.save();
-        
-        console.log(gameRoom.roomCode);
-        res.status(201).json(new ApiResponse(201, gameRoom, "Game room created successfully"));
+       res.status(201).json(new ApiResponse(201, gameRoom, "Game room created successfully"));
         
     } catch (error) {
         console.log("Error in createGameRoom::controller", error, req.user.username)
@@ -75,7 +73,26 @@ const joinGameRoom = asyncHandler(async (req, res) => {
     }
 })
 
-export { createGameRoom , joinGameRoom};
+const deleteGameRoom = asyncHandler(async (req, res) => {
+    try {
+        const { roomCode } = req.body;
+        if(!roomCode){
+            throw new ApiError(400, "Room code is required");
+        }
+        const gameRoom = await GameRoom.findOne({ roomCode });
+        if(!gameRoom){
+            throw new ApiError(404, "Game room not found");
+        }
+        await gameRoom.deleteOne();
+        console.log("Game room deleted successfully");
+        res.status(200).json(new ApiResponse(200, null, "Game room deleted successfully"));
+    } catch (error) {
+        console.log("Error in deleteGameRoom::controller", error, req.user.username)
+        throw new ApiError(500, "Error in deleteGameRoom::controller");
+    }
+})
+
+export { createGameRoom , joinGameRoom, deleteGameRoom};
 
 
 

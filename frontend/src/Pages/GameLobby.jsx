@@ -100,7 +100,19 @@ const navigate = useNavigate();
   };
 
   // Handle leave lobby
-  const handleLeaveLobby = () => {
+  const handleLeaveLobby = async () => {
+    const response = await fetch(`${API_BASE_URL}/game/delete-room`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ roomCode: roomCode }),
+      credentials: 'include',
+    });
+    if(!response.ok){
+      throw new Error('Failed to delete game room');
+    }
     navigate('/home');
   };
 
