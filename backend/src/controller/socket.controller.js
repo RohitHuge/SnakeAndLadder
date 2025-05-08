@@ -8,9 +8,6 @@ export const activateSocket = () => {
         handleLobbyEvents(socket);
     });
 
-    // io.on("disconnect", (socket) => {
-    //     console.log("User disconnected", socket.id);
-    // });
 };
 
 export const deactivateSocket = () => {

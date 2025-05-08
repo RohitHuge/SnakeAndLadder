@@ -3,7 +3,7 @@ import GameRoom from "../models/gameRoom.models.js";
 import {ApiError} from "../utils/apiError.js";
 import {ApiResponse} from "../utils/apiResponse.js";
 import {nanoid} from "nanoid";
-
+import { User } from "../models/user.model.js";
 
 const createGameRoom = asyncHandler(async (req, res) => {
     try {
@@ -72,7 +72,7 @@ const joinGameRoom = asyncHandler(async (req, res) => {
         console.log("Error in joinGameRoom::controller", error, req.user.username)
         throw new ApiError(500, "Error in joinGameRoom::controller");
     }
-})
+});
 
 const deleteGameRoom = asyncHandler(async (req, res) => {
     try {
@@ -94,7 +94,7 @@ const deleteGameRoom = asyncHandler(async (req, res) => {
         console.log("Error in deleteGameRoom::controller", error, req.user.username)
         throw new ApiError(500, "Error in deleteGameRoom::controller");
     }
-})
+});
 
 export { createGameRoom , joinGameRoom, deleteGameRoom};
 
