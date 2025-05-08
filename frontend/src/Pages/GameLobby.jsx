@@ -3,59 +3,139 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
+import { SOCKET_BASE_URL } from '../config';
 
 const GameLobby = () => {
   // Current user data
-const location = useLocation();
-const [user, setUser] = useState(location.state.user);
-const navigate = useNavigate();
+  const location = useLocation();
+  const [user, setUser] = useState(location.state.user);
+  const navigate = useNavigate();
   const [currentUser] = useState({
     username: user.username,
     avatar: user.avatarUrl ||'https://readdy.ai/api/search-image?query=cute%2520cartoon%2520game%2520character%2520avatar%2520with%2520purple%2520background%252C%2520digital%2520art%252C%2520friendly%2520face%252C%2520game%2520icon%2520style%252C%2520minimalist%2520design%252C%2520clean%2520background%252C%2520high%2520quality&width=80&height=80&seq=avatar123&orientation=squarish',
     isHost: location.state.isHost
   });
- 
+  
+  const [roomCode, setroomCode] = useState('Failed to get room code');
+  const [copied, setCopied] = useState(false);
+  const [opponent, setOpponent] = useState(null);
+
+
   useEffect(() => {
-    if (location.state.isHost) {
-      const makeGameRoom = async () => {
-        const response = await fetch(`${API_BASE_URL}/game/create-room`, {
+    let socket = null;
+
+    const handleLobbyEvents = async () => {
+      try {
+        // Activate socket connection
+        fetch(`${API_BASE_URL}/socket/activate`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
           credentials: 'include',
         });
-        if(!response.ok){
-          throw new Error('Failed to create game room');
-        }
-        const data = await response.json();
-        setroomCode(data.data.roomCode);
-      };
-  
-      makeGameRoom();
-    }
-    else{
-      const joinGameRoom = async () => {
-        const response = await fetch(`${API_BASE_URL}/game/join-room`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify({ roomCode: location.state.roomCode }),
+
+        socket = io(SOCKET_BASE_URL, {
+          withCredentials: true,
+          transports: ['websocket', 'polling'],
         });
-        if(!response.ok){
-          throw new Error('Failed to join game room');
+
+        // Add socket event listeners
+        socket.on("lobby-update", (data) => {
+          console.log("Lobby update received:", data);
+          if (data.type === "user-joined") {
+            setOpponent({
+              username: data.payload.username,
+              avatar: data.payload.avatar
+            });
+          } else if (data.type === "user-left") {
+            setOpponent(null);
+          }
+        });
+
+        // Add event listener for host info
+        socket.on("host-info", (data) => {
+          console.log("Host info received:", data);
+          setOpponent({
+            username: data.username,
+            avatar: data.avatar
+          });
+        });
+
+        if (location.state.isHost) {
+          const makeGameRoom = async () => {
+            try {
+              const response = await fetch(`${API_BASE_URL}/game/create-room`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                },
+                credentials: 'include',
+              });
+              
+              if (!response.ok) {
+                throw new Error('Failed to create game room');
+              }
+              
+              const data = await response.json();
+              setroomCode(data.data.roomCode);
+              return { roomCode: data.data.roomCode };
+            } catch (error) {
+              console.error("Error creating game room:", error);
+              throw error;
+            }
+          };
+    
+          const gameRoomPromise = makeGameRoom();
+          gameRoomPromise.then(({ roomCode }) => {
+            socket.emit("createLobby", roomCode, currentUser);
+          });
+        } else {
+          const joinGameRoom = async () => {
+            try {
+              const response = await fetch(`${API_BASE_URL}/game/join-room`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ roomCode: location.state.roomCode }),
+              });
+              
+              if (!response.ok) {
+                throw new Error('Failed to join game room');
+              }
+              
+              const data = await response.json();
+              setroomCode(data.data.roomCode);
+              return { roomCode: data.data.roomCode };
+            } catch (error) {
+              console.error("Error joining game room:", error);
+              throw error;
+            }
+          };
+    
+          const gameRoomPromise = joinGameRoom();
+          gameRoomPromise.then(({ roomCode }) => {
+            socket.emit("joinLobby", roomCode, currentUser);
+          });
         }
-        const data = await response.json();
-        setroomCode(data.data.roomCode);
-      };
-      joinGameRoom();
-    }
-    }, []);
-  
+        
+      } catch (error) {
+        console.error("Error in handleLobbyEvents:", error);
+      }
+    };
+
+    handleLobbyEvents();
+
+    // Cleanup function
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+  }, []);
+
   const [friends] = useState([
     {
       id: 1,
@@ -85,12 +165,7 @@ const navigate = useNavigate();
     console.log(`Invite sent to friend ${friendId}`);
   };
 
-  // Room code
-  const [roomCode, setroomCode] = useState('Failed to get room code');
-  const [copied, setCopied] = useState(false);
-  
-  // Opponent state (null = waiting, object = joined)
-  const [opponent, setOpponent] = useState(null);
+
 
   // Copy room code to clipboard
   const copyRoomCode = () => {
@@ -191,7 +266,15 @@ const navigate = useNavigate();
               </div>
               <h3 className="text-xl font-semibold text-purple-800">{currentUser.username}</h3>
               <p className="text-purple-600 mt-2">
-                <i className="fas fa-crown mr-1"></i> Host
+                {currentUser.isHost ? (
+                  <>
+                    <i className="fas fa-crown mr-1"></i> Host
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-user mr-1"></i> Player
+                  </>
+                )}
               </p>
             </div>
             {/* Opponent (waiting or joined) */}
@@ -210,7 +293,15 @@ const navigate = useNavigate();
                   </div>
                   <h3 className="text-xl font-semibold text-blue-800">{opponent.username}</h3>
                   <p className="text-blue-600 mt-2">
-                    <i className="fas fa-user-check mr-1"></i> Joined
+                    {!currentUser.isHost ? (
+                      <>
+                        <i className="fas fa-crown mr-1"></i> Host
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-user-check mr-1"></i> Joined
+                      </>
+                    )}
                   </p>
                 </>
               ) : (

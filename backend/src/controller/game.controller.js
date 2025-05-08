@@ -4,6 +4,7 @@ import {ApiError} from "../utils/apiError.js";
 import {ApiResponse} from "../utils/apiResponse.js";
 import {nanoid} from "nanoid";
 
+
 const createGameRoom = asyncHandler(async (req, res) => {
     try {
         const user = req.user;
@@ -80,12 +81,15 @@ const deleteGameRoom = asyncHandler(async (req, res) => {
             throw new ApiError(400, "Room code is required");
         }
         const gameRoom = await GameRoom.findOne({ roomCode });
-        if(!gameRoom){
-            throw new ApiError(404, "Game room not found");
-        }
-        await gameRoom.deleteOne();
+        if(gameRoom){
+            await gameRoom.deleteOne();
         console.log("Game room deleted successfully");
         res.status(200).json(new ApiResponse(200, null, "Game room deleted successfully"));
+        }
+        else{
+            res.status(200).json(new ApiResponse(200, null, "Game room deleted already"));
+        }
+        
     } catch (error) {
         console.log("Error in deleteGameRoom::controller", error, req.user.username)
         throw new ApiError(500, "Error in deleteGameRoom::controller");
