@@ -20,11 +20,9 @@ const GameLobby = () => {
   const [roomCode, setroomCode] = useState('Failed to get room code');
   const [copied, setCopied] = useState(false);
   const [opponent, setOpponent] = useState(null);
-
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    let socket = null;
-
     const handleLobbyEvents = async () => {
       try {
         // Activate socket connection
@@ -33,14 +31,15 @@ const GameLobby = () => {
           credentials: 'include',
         });
 
-        socket = io(SOCKET_BASE_URL, {
+        const newSocket = io(SOCKET_BASE_URL, {
           withCredentials: true,
           transports: ['websocket', 'polling'],
         });
 
+        setSocket(newSocket);
+
         // Add socket event listeners
-        socket.on("lobby-update", (data) => {
-          console.log("Lobby update received:", data);
+        newSocket.on("lobby-update", (data) => {
           if (data.type === "user-joined") {
             setOpponent({
               username: data.payload.username,
@@ -52,8 +51,7 @@ const GameLobby = () => {
         });
 
         // Add event listener for host info
-        socket.on("host-info", (data) => {
-          console.log("Host info received:", data);
+        newSocket.on("host-info", (data) => {
           setOpponent({
             username: data.username,
             avatar: data.avatar
@@ -87,7 +85,7 @@ const GameLobby = () => {
     
           const gameRoomPromise = makeGameRoom();
           gameRoomPromise.then(({ roomCode }) => {
-            socket.emit("createLobby", roomCode, currentUser);
+            newSocket.emit("createLobby", roomCode, currentUser);
           });
         } else {
           const joinGameRoom = async () => {
@@ -117,7 +115,7 @@ const GameLobby = () => {
     
           const gameRoomPromise = joinGameRoom();
           gameRoomPromise.then(({ roomCode }) => {
-            socket.emit("joinLobby", roomCode, currentUser);
+            newSocket.emit("joinLobby", roomCode, currentUser);
           });
         }
         
@@ -176,19 +174,28 @@ const GameLobby = () => {
 
   // Handle leave lobby
   const handleLeaveLobby = async () => {
-    const response = await fetch(`${API_BASE_URL}/game/delete-room`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ roomCode: roomCode }),
-      credentials: 'include',
-    });
-    if(!response.ok){
-      throw new Error('Failed to delete game room');
+    try {
+      const response = await fetch(`${API_BASE_URL}/game/delete-room`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ roomCode: roomCode }),
+        credentials: 'include',
+      });
+      
+      if (socket) {
+        socket.emit("leaveLobby", roomCode,currentUser);
+      }
+      
+      if(!response.ok){
+        throw new Error('Failed to delete game room');
+      }
+      navigate('/home');
+    } catch (error) {
+      console.error("Error leaving lobby:", error);
     }
-    navigate('/home');
   };
 
   // Handle start game

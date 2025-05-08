@@ -39,20 +39,20 @@ export const handleLobbyEvents = (socket) => {
 
 
 
-    socket.on("leaveLobby", (roomCode) => {
+    socket.on("leaveLobby", (roomCode,currentUser) => {
         socket.to(roomCode).emit("lobby-update", {
             type: "user-left",
-            payload: {
-                username: socket.user.username,
-                avatar: socket.user.avatar,
-            },
+            // payload: {
+            //     username: socket.user.username,
+            //     avatar: socket.user.avatar,
+            // },
         });
         console.log("leaveLobby", roomCode);
         socket.leave(roomCode);
 
         // If host leaves, clean up the room
         const roomInfo = rooms.get(roomCode);
-        if (roomInfo && roomInfo.host.username === socket.user.username) {
+        if (roomInfo && roomInfo.host.username === currentUser.username) {
             rooms.delete(roomCode);
         }
     });
