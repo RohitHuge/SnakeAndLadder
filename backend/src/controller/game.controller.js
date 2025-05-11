@@ -96,7 +96,51 @@ const deleteGameRoom = asyncHandler(async (req, res) => {
     }
 });
 
-export { createGameRoom , joinGameRoom, deleteGameRoom};
+const leaveGameRoom = asyncHandler(async (req, res) => {
+    try {
+        const {roomCode, currentPlayer} = req.body;
+        const gameRoom = await GameRoom.findOne({ roomCode });
+        if (!gameRoom) {
+            return res.status(404).json({ message: 'Game room not found' });
+          }
+      
+          // Remove the player from the players array
+          gameRoom.players = gameRoom.players.filter(
+            player => player.user.toString() !== currentPlayer
+          );
+      
+          // Additional cleanup logic
+          if (gameRoom.turn && gameRoom.turn.toString() === currentPlayer) {
+            gameRoom.turn = null; // Clear turn if it was this player's turn
+          }
+      
+          // If no players left, delete the room
+          if (gameRoom.players.length === 0) {
+            await GameRoom.deleteOne({ roomCode });
+            return res.status(200).json({ message: 'Last player left, room deleted' });
+          }
+      
+          // If host left, assign new host (first remaining player)
+          if (gameRoom.createdBy.toString() === currentPlayer) {
+            gameRoom.createdBy = gameRoom.players[0].user;
+          }
+      
+          // Update status if needed
+          if (gameRoom.status === 'started' && gameRoom.players.length < 2) {
+            gameRoom.status = 'finished';
+            gameRoom.winner = gameRoom.players[0]?.user || null;
+          }
+      
+          await gameRoom.save();
+        
+        
+    } catch (error) {
+        console.log("Error in leaveGameRoom :: controller", error);
+        throw new ApiError(500, "Error in leaving the room::controller");
+    }
+});
+
+export { createGameRoom , joinGameRoom, deleteGameRoom, leaveGameRoom};
 
 
 

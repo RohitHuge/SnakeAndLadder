@@ -3,62 +3,52 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
-import { SOCKET_BASE_URL } from '../config';
 
-const GameLobby = () => {
+
+const GameLobby = ({ socket, onGameStart }) => {
   // Current user data
   const location = useLocation();
-  const [user, setUser] = useState(location.state.user);
+  const [user, setUser] = useState(location.state?.user);
   const navigate = useNavigate();
   const [currentUser] = useState({
-    username: user.username,
-    avatar: user.avatarUrl ||'https://readdy.ai/api/search-image?query=cute%2520cartoon%2520game%2520character%2520avatar%2520with%2520purple%2520background%252C%2520digital%2520art%252C%2520friendly%2520face%252C%2520game%2520icon%2520style%252C%2520minimalist%2520design%252C%2520clean%2520background%252C%2520high%2520quality&width=80&height=80&seq=avatar123&orientation=squarish',
-    isHost: location.state.isHost
+    username: user?.username,
+    avatar: user?.avatarUrl || 'https://readdy.ai/api/search-image?query=cute%2520cartoon%2520game%2520character%2520avatar%2520with%2520purple%2520background%252C%2520digital%2520art%252C%2520friendly%2520face%252C%2520game%2520icon%2520style%252C%2520minimalist%2520design%252C%2520clean%2520background%252C%2520high%2520quality&width=80&height=80&seq=avatar123&orientation=squarish',
+    isHost: location.state?.isHost
   });
   
   const [roomCode, setroomCode] = useState('Failed to get room code');
   const [copied, setCopied] = useState(false);
   const [opponent, setOpponent] = useState(null);
-  const [socket, setSocket] = useState(null);
+  // const [socket, setSocket] = useState(null);
 
   useEffect(() => {
+    if (!socket) return;
+
     const handleLobbyEvents = async () => {
       try {
-        // Activate socket connection
-        fetch(`${API_BASE_URL}/socket/activate`, {
-          method: 'POST',
-          credentials: 'include',
-        });
-
-        const newSocket = io(SOCKET_BASE_URL, {
-          withCredentials: true,
-          transports: ['websocket', 'polling'],
-        });
-
-        setSocket(newSocket);
-
+        
         // Add socket event listeners
-        newSocket.on("lobby-update", (data) => {
-          if (data.type === "user-joined") {
+        socket.on("lobby-update", (data) => {
+          if (data.type === "user-joined" && data.payload.username !== currentUser.username) {
+            console.log("user-joined", data.payload.username);
             setOpponent({
               username: data.payload.username,
               avatar: data.payload.avatar
             });
           } else if (data.type === "user-left") {
             setOpponent(null);
+          } else if (data.type === "host-info") {
+            console.log("host-info", data.username);
+            setOpponent({
+              username: data.payload.username,
+              avatar: data.payload.avatarUrl || 'https://readdy.ai/api/search-image?query=cute%2520cartoon%2520game%2520character%2520avatar%2520with%2520purple%2520background%252C%2520digital%2520art%252C%2520friendly%2520face%252C%2520game%2520icon%2520style%252C%2520minimalist%2520design%252C%2520clean%2520background%252C%2520high%2520quality&width=80&height=80&seq=avatar123&orientation=squarish'
+            });
           }
         });
 
-        // Add event listener for host info
-        newSocket.on("host-info", (data) => {
-          setOpponent({
-            username: data.username,
-            avatar: data.avatar
-          });
-        });
+        
 
-        if (location.state.isHost) {
+        if (location.state?.isHost) {
           const makeGameRoom = async () => {
             try {
               const response = await fetch(`${API_BASE_URL}/game/create-room`, {
@@ -85,7 +75,7 @@ const GameLobby = () => {
     
           const gameRoomPromise = makeGameRoom();
           gameRoomPromise.then(({ roomCode }) => {
-            newSocket.emit("createLobby", roomCode, currentUser);
+            socket.emit("createLobby", roomCode, currentUser);
           });
         } else {
           const joinGameRoom = async () => {
@@ -97,7 +87,7 @@ const GameLobby = () => {
                   'Accept': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({ roomCode: location.state.roomCode }),
+                body: JSON.stringify({ roomCode: location.state?.roomCode }),
               });
               
               if (!response.ok) {
@@ -115,7 +105,7 @@ const GameLobby = () => {
     
           const gameRoomPromise = joinGameRoom();
           gameRoomPromise.then(({ roomCode }) => {
-            newSocket.emit("joinLobby", roomCode, currentUser);
+            socket.emit("joinLobby", roomCode, currentUser);
           });
         }
         
@@ -129,10 +119,12 @@ const GameLobby = () => {
     // Cleanup function
     return () => {
       if (socket) {
-        socket.disconnect();
+        // socket.disconnect();
+        socket.off("lobby-update");
+        socket.off("host-info");
       }
     };
-  }, []);
+  }, [socket, location.state?.isHost, currentUser]);
 
   const [friends] = useState([
     {
@@ -181,7 +173,7 @@ const GameLobby = () => {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({ roomCode: roomCode }),
+        body: JSON.stringify({ roomCode: roomCode , currentUser: currentUser }),
         credentials: 'include',
       });
       
@@ -201,7 +193,11 @@ const GameLobby = () => {
   // Handle start game
   const handleStartGame = () => {
     console.log('Starting game...');
-    // In a real app, this would initiate the game
+    onGameStart({
+      roomCode,
+      currentUser,
+      opponent
+    });
   };
 
   const [inputValue, setInputValue] = useState('');

@@ -46,7 +46,7 @@ const Home = () => {
   }, []);
 
   const handleCreateGame = async () => {
-    navigate('/game-lobby', {
+    navigate('/game', {
       state: {
         isHost: true,
         user : user
@@ -55,15 +55,13 @@ const Home = () => {
   }
 
   const handleJoinGame = async () => {
-    navigate('/game-lobby',
-       {
-      state: {
-        isHost: false,
-        user : user,
-        roomCode : roomCode
-      }
-    }
-    );
+    navigate('/game', {
+        state: {
+            isHost: false,
+            user: user,
+            roomCode: roomCode
+        }
+    });
   }
 
   const handleLogout = async () => {
