@@ -18,8 +18,19 @@ const GameBoard = ({ gameData, socket }) => {
   const [playerPositions, setPlayerPositions] = useState([1, 1]);
 
   useEffect(() => {
-    console.log("GameBoard received gameData:", gameData);
-  }, [gameData]);
+    let interval;
+    if (isRolling) {
+      interval = setInterval(() => {
+       setDiceRoll(Math.floor(Math.random() * 6) + 1);
+     }, 100);
+   }
+   return () => {
+    if(isRolling){
+      clearInterval(interval);
+    }
+   }
+
+  }, [isRolling]);
 
 
   useEffect(() => {
@@ -31,7 +42,10 @@ const GameBoard = ({ gameData, socket }) => {
         setCurrentPlayer(data.data.turn.username === gameData.player1.username ? 1 : 2);
         setPlayerPositions([data.data.P1position, data.data.P2position]);
       }
-      if (data.type === "rollDice") {
+      if (data.type === "rollDice-start") {
+        setIsRolling(true);
+      }
+      if (data.type === "rollDice-end") {
         setDiceRoll(data.data.roll);
         movePlayer(data.data.roll);
         setIsRolling(false);
@@ -100,11 +114,7 @@ const GameBoard = ({ gameData, socket }) => {
 
   // Function to roll dice
   const rollDice = () => {
-    if (isRolling) {
-       setInterval(() => {
-        setDiceRoll(Math.floor(Math.random() * 6) + 1);
-      }, 100);
-    }
+
       
     if (isRolling || winner) return;
     setIsRolling(true);
@@ -114,14 +124,7 @@ const GameBoard = ({ gameData, socket }) => {
       roomCode: gameData.roomCode,
     });
     
-    // After animation, set the final roll and move player
-    // setTimeout(() => {
-    //   clearInterval(rollInterval);
-    //   const roll = Math.floor(Math.random() * 6) + 1;
-    //   setDiceRoll(roll);
-    //   movePlayer(roll);
-    //   setIsRolling(false);
-    // }, 1000);
+    
   };
 
   // Function to move player
@@ -172,10 +175,10 @@ const GameBoard = ({ gameData, socket }) => {
     setPlayerPositions(newPositions);
 
     // Switch turns
-    setTimeout(() => {
-      setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-      setGameMessage(`Player ${currentPlayer === 1 ? 2 : 1}'s turn to roll`);
-    }, 2000);
+    // setTimeout(() => {
+    //   setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
+    //   setGameMessage(`Player ${currentPlayer === 1 ? 2 : 1}'s turn to roll`);
+    // }, 2000);
   };
 
   // Function to restart game

@@ -169,7 +169,6 @@ const startGame = asyncHandler(async (req, res) => {
                 }
             });
 
-            console.log("Game started Event emitted");
 
         }
 

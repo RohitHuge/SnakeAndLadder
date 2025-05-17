@@ -24,13 +24,19 @@ export const handleGameEvents = async (socket, data) => {
     });
 
     socket.on("rollDice", async (data) => {
-        const roll = Math.floor(Math.random() * 6) + 1;
         io.in(data.roomCode).emit("GameStatus", {
-            type: "rollDice",
-            data: {
-                roll: roll
-            }
+            type: "rollDice-start",
         });
+
+        const roll = Math.floor(Math.random() * 6) + 1;
+        setTimeout(() => {
+            io.in(data.roomCode).emit("GameStatus", {
+                type: "rollDice-end",
+                data: {
+                    roll: roll
+                }
+            });
+        }, 3000);
     });
 
 
