@@ -6,18 +6,6 @@ import { useNavigate } from 'react-router-dom';
 const GameBoard = ({ gameData, socket }) => {
   const navigate = useNavigate();
   // Add logging for game data
-  useEffect(() => {
-    console.log("GameBoard received gameData:", gameData);
-  }, [gameData]);
-
-  useEffect(() => {
-    socket.on("exitGame", () => {
-      navigate('/home');
-    });
-  }, []);
-
-
-
   // Game state
   const [currentPlayer, setCurrentPlayer] = useState(1);
   const [diceRoll, setDiceRoll] = useState(null);
@@ -28,6 +16,31 @@ const GameBoard = ({ gameData, socket }) => {
   
   // Player positions (1-100)
   const [playerPositions, setPlayerPositions] = useState([1, 1]);
+
+  useEffect(() => {
+    console.log("GameBoard received gameData:", gameData);
+  }, [gameData]);
+
+
+  useEffect(() => {
+    socket.on("exitGame", () => {
+      navigate('/home');
+    });
+    socket.on("GameStatus", (data) => {
+      if (data.type === "initiateGame") {
+        setCurrentPlayer(data.data.turn.username === gameData.player1.username ? 1 : 2);
+        setPlayerPositions([data.data.P1position, data.data.P2position]);
+      }
+      if (data.type === "rollDice") {
+        setDiceRoll(data.data.roll);
+        movePlayer(data.data.roll);
+        setIsRolling(false);
+      }
+    });
+
+  }, []);
+
+
 
   // If gameData is not available, show loading state
   if (!gameData || !gameData.player1 || !gameData.player2) {
@@ -87,23 +100,28 @@ const GameBoard = ({ gameData, socket }) => {
 
   // Function to roll dice
   const rollDice = () => {
+    if (isRolling) {
+       setInterval(() => {
+        setDiceRoll(Math.floor(Math.random() * 6) + 1);
+      }, 100);
+    }
+      
     if (isRolling || winner) return;
     setIsRolling(true);
     setGameMessage("Rolling dice...");
-    
-    // Simulate dice roll animation
-    const rollInterval = setInterval(() => {
-      setDiceRoll(Math.floor(Math.random() * 6) + 1);
-    }, 100);
 
+    socket.emit("rollDice", {
+      roomCode: gameData.roomCode,
+    });
+    
     // After animation, set the final roll and move player
-    setTimeout(() => {
-      clearInterval(rollInterval);
-      const roll = Math.floor(Math.random() * 6) + 1;
-      setDiceRoll(roll);
-      movePlayer(roll);
-      setIsRolling(false);
-    }, 1000);
+    // setTimeout(() => {
+    //   clearInterval(rollInterval);
+    //   const roll = Math.floor(Math.random() * 6) + 1;
+    //   setDiceRoll(roll);
+    //   movePlayer(roll);
+    //   setIsRolling(false);
+    // }, 1000);
   };
 
   // Function to move player
@@ -314,6 +332,36 @@ const GameBoard = ({ gameData, socket }) => {
     );
   };
 
+  // Function to get roll button state and text
+  const getRollButtonState = () => {
+    if (winner !== null) {
+      return {
+        disabled: true,
+        text: "Game Over",
+        className: "bg-gray-400 cursor-not-allowed"
+      };
+    }
+    if (isRolling) {
+      return {
+        disabled: true,
+        text: "Rolling...",
+        className: "bg-gray-400 cursor-not-allowed"
+      };
+    }
+    if (currentPlayer !== 1) {
+      return {
+        disabled: true,
+        text: `${gameData.player2.username}'s turn`,
+        className: "bg-gray-400 cursor-not-allowed"
+      };
+    }
+    return {
+      disabled: false,
+      text: "Roll Dice",
+      className: "bg-purple-600 hover:bg-purple-700"
+    };
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 to-white relative overflow-hidden">
       {/* Decorative elements */}
@@ -465,20 +513,10 @@ const GameBoard = ({ gameData, socket }) => {
                 </div>
                 <button
                   onClick={rollDice}
-                  disabled={isRolling || winner !== null}
-                  className={`w-full py-3 px-6 rounded-button text-white font-medium text-lg transition-all cursor-pointer whitespace-nowrap ${isRolling ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'}`}
+                  disabled={getRollButtonState().disabled}
+                  className={`w-full py-3 px-6 rounded-button text-white font-medium text-lg transition-all cursor-pointer whitespace-nowrap ${getRollButtonState().className}`}
                 >
-                  {isRolling ? (
-                    <span className="flex items-center justify-center">
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      Rolling...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center">
-                      <i className="fas fa-dice mr-2"></i>
-                      Roll Dice
-                    </span>
-                  )}
+                  {getRollButtonState().text}
                 </button>
                 <div className="mt-4 text-center">
                   <p className="text-gray-700">{gameMessage}</p>
@@ -561,7 +599,7 @@ const GameBoard = ({ gameData, socket }) => {
                   Play Again
                 </button>
                 <button
-                  onClick={exitGame}
+                  onClick={handleExitGame}
                   className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-button transition-colors cursor-pointer whitespace-nowrap"
                 >
                   <i className="fas fa-home mr-2"></i>

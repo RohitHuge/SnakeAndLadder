@@ -23,7 +23,8 @@ const gameRoomSchema = new mongoose.Schema({
   
     winner: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   
-    turn: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Whose turn it is
+    turn: { type: mongoose.Schema.Types.ObjectId, ref: "User",
+    }, // Whose turn it is
   
     gameState: {
       diceRoll: { type: Number, default: null },

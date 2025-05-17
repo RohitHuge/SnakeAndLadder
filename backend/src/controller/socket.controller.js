@@ -12,10 +12,9 @@ export const initializeSocketHandlers = (socketIO) => {
         handleLobbyEvents(socket, io);
 
         // Handle game room joining
-        socket.on("startGame", (data) => {
-            // socket.join(data.roomCode);
-            handleGameEvents(socket, data);
-        });
+        // socket.on("startGame", (data) => {
+        //     handleGameEvents(socket, data);
+        // });
     });
 };
 

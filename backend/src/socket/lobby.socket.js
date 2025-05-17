@@ -1,7 +1,7 @@
 // import { getSocketIO } from "./socketServer.js";
 import GameRoom from "../models/gameRoom.models.js";
 import {User} from "../models/user.model.js";
-
+import { handleGameEvents } from "./game.socket.js";
 // Store room information
 
 export const handleLobbyEvents = (socket, io) => {
@@ -70,11 +70,10 @@ export const handleLobbyEvents = (socket, io) => {
         });
     });
 
- 
-    // // Handle disconnection
-    // socket.on("disconnect", () => {
-        
-    // });
+    socket.on("startGame", (data) => {
+        handleGameEvents(socket, data);
+    });
+
 };
 
 
