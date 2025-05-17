@@ -1,12 +1,11 @@
-import { getSocketIO } from "./socketServer.js";
+// import { getSocketIO } from "./socketServer.js";
 import GameRoom from "../models/gameRoom.models.js";
 import {User} from "../models/user.model.js";
 
 // Store room information
-const rooms = new Map();
 
-export const handleLobbyEvents = (socket) => {
-    const io = getSocketIO();
+export const handleLobbyEvents = (socket, io) => {
+    // const io = getSocketIO();
 
     // Store user info in socket for reference
     socket.on("setUserInfo", (userInfo) => {
@@ -71,6 +70,7 @@ export const handleLobbyEvents = (socket) => {
         });
     });
 
+ 
     // // Handle disconnection
     // socket.on("disconnect", () => {
         

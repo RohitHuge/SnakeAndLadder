@@ -1,7 +1,23 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const GameBoard = () => {
+
+const GameBoard = ({ gameData, socket }) => {
+  const navigate = useNavigate();
+  // Add logging for game data
+  useEffect(() => {
+    console.log("GameBoard received gameData:", gameData);
+  }, [gameData]);
+
+  useEffect(() => {
+    socket.on("exitGame", () => {
+      navigate('/home');
+    });
+  }, []);
+
+
+
   // Game state
   const [currentPlayer, setCurrentPlayer] = useState(1);
   const [diceRoll, setDiceRoll] = useState(null);
@@ -12,6 +28,20 @@ const GameBoard = () => {
   
   // Player positions (1-100)
   const [playerPositions, setPlayerPositions] = useState([1, 1]);
+
+  // If gameData is not available, show loading state
+  if (!gameData || !gameData.player1 || !gameData.player2) {
+    console.log("GameBoard: Missing game data", gameData);
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Loading game data...</p>
+          <p className="text-gray-500 text-sm mt-2">Please wait while we set up your game</p>
+        </div>
+      </div>
+    );
+  }
 
   // Define snakes and ladders
   const ladders = {
@@ -43,14 +73,14 @@ const GameBoard = () => {
   const players = [
     {
       id: 1,
-      name: "PlayerOne",
-      avatar: "https://readdy.ai/api/search-image?query=cute%2520cartoon%2520game%2520character%2520avatar%2520with%2520purple%2520background%252C%2520digital%2520art%252C%2520friendly%2520face%252C%2520game%2520icon%2520style%252C%2520minimalist%2520design%252C%2520clean%2520background%252C%2520high%2520quality&width=80&height=80&seq=avatar123&orientation=squarish",
+      name: gameData.player1.username,
+      avatar: gameData.player1.avatar,
       color: "bg-purple-600"
     },
     {
       id: 2,
-      name: "PlayerTwo",
-      avatar: "https://readdy.ai/api/search-image?query=cute%2520cartoon%2520game%2520character%2520avatar%2520with%2520blue%2520background%252C%2520digital%2520art%252C%2520friendly%2520face%252C%2520game%2520icon%2520style%252C%2520minimalist%2520design%252C%2520clean%2520background%252C%2520high%2520quality&width=80&height=80&seq=avatar456&orientation=squarish",
+      name: gameData.player2.username,
+      avatar: gameData.player2.avatar,
       color: "bg-blue-600"
     }
   ];
@@ -141,9 +171,10 @@ const GameBoard = () => {
   };
 
   // Function to exit game
-  const exitGame = () => {
+  const handleExitGame = () => {
     console.log("Exiting game, would redirect to /home");
-    // window.location.href = '/home';
+    socket.emit("exitGame");
+    navigate('/home');
   };
 
   // Function to get cell coordinates from position (1-100)
@@ -329,7 +360,7 @@ const GameBoard = () => {
             ))}
           </div>
           <button
-            onClick={exitGame}
+            onClick={handleExitGame}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-button transition-colors cursor-pointer whitespace-nowrap flex items-center"
           >
             <i className="fas fa-sign-out-alt mr-2"></i>

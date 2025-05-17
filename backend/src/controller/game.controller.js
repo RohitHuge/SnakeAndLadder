@@ -4,6 +4,7 @@ import {ApiError} from "../utils/apiError.js";
 import {ApiResponse} from "../utils/apiResponse.js";
 import {nanoid} from "nanoid";
 import { User } from "../models/user.model.js";
+import { getSocketIO } from "./socket.controller.js";
 
 const createGameRoom = asyncHandler(async (req, res) => {
     try {
@@ -140,7 +141,47 @@ const leaveGameRoom = asyncHandler(async (req, res) => {
     }
 });
 
-export { createGameRoom , joinGameRoom, deleteGameRoom, leaveGameRoom};
+const startGame = asyncHandler(async (req, res) => {
+    try {
+        const { roomCode } = req.body;
+        const gameRoom = await GameRoom.findOne({ roomCode });
+
+        if (!gameRoom) {
+            throw new ApiError(404, "Game room not found");
+        }
+
+        if (gameRoom.players.length < 2) {
+            throw new ApiError(400, "Need at least 2 players to start the game");
+        }
+
+        // Update game room status
+        gameRoom.status = "started";
+        await gameRoom.save();
+
+        // Get socket instance and emit game start event
+        const io = getSocketIO();
+        if (io) {
+            io.in(roomCode).emit("game-update", {
+                type: "game-started",
+                payload: {
+                    roomCode: roomCode,
+                    players: gameRoom.players
+                }
+            });
+
+            console.log("Game started Event emitted");
+
+        }
+
+        res.status(200).json(new ApiResponse(200, gameRoom, "Game started successfully"));
+    } catch (error) {
+        console.log("Error in startGame::controller", error);
+        throw new ApiError(500, "Error in startGame::controller");
+    }
+});
+
+
+export { createGameRoom , joinGameRoom, deleteGameRoom, leaveGameRoom, startGame};
 
 
 

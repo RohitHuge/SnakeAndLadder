@@ -1,122 +1,75 @@
 import {useState, useEffect} from "react";
-import { io } from "socket.io-client";
-import { SOCKET_BASE_URL, API_BASE_URL } from "../config";
 import GameBoard from "./GameBoard.jsx";
 import GameLobby from "./GameLobby.jsx";
 import { useNavigate } from "react-router-dom";
+import { io } from 'socket.io-client';
+import { SOCKET_BASE_URL } from '../config';
 
 function Game() {
-    const [socket, setSocket] = useState(null);
     const [gameState, setGameState] = useState("lobby");
     const [gameData, setGameData] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [socket, setSocket] = useState(null);
+    const [isConnected, setIsConnected] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const initializeSocket = async () => {
-            try {
-                console.log('Starting socket initialization...');
-                
-                // First, create the socket instance
-                const newSocket = io(SOCKET_BASE_URL, {
-                    withCredentials: true,
-                    transports: ["websocket", "polling"],
-                    reconnectionAttempts: 3,
-                    timeout: 10000,
-                });
+        // Create socket instance
+        const newSocket = io(SOCKET_BASE_URL, {
+            withCredentials: true,
+            transports: ["websocket", "polling"],
+            reconnectionAttempts: 3,
+            timeout: 10000,
+        });
 
-                // Add connection event listeners for debugging
-                newSocket.on('connect', () => {
-                    console.log('Socket connected successfully');
-                });
-
-                newSocket.on('connect_error', (error) => {
-                    console.error('Socket connection error:', error);
-                });
-
-                // Wait for socket to connect
-                await new Promise((resolve, reject) => {
-                    const timeoutId = setTimeout(() => {
-                        reject(new Error('Socket connection timeout after 10 seconds'));
-                    }, 10000);
-
-                    newSocket.on('connect', () => {
-                        clearTimeout(timeoutId);
-                        resolve();
-                    });
-
-                    newSocket.on('connect_error', (error) => {
-                        clearTimeout(timeoutId);
-                        reject(error);
-                    });
-                });
-
-                // After socket is connected, activate it on the server
-                console.log('Activating socket on server...');
-                const response = await fetch(`${API_BASE_URL}/socket/activate`, {
-                    method: "POST",
-                    credentials: "include",
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to activate socket: ${response.status} ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                console.log('Socket activation response:', data);
-
-                setSocket(newSocket);
-                setIsLoading(false);
-            } catch (error) {
-                console.error("Error initializing socket:", error);
-                setError(error.message || 'Failed to connect to game server');
-                setIsLoading(false);
-            }
+        // Connection event handlers
+        const handleConnect = () => {
+            console.log('Socket connected successfully');
+            setIsConnected(true);
         };
 
-        initializeSocket();
+        const handleDisconnect = () => {
+            console.log('Socket disconnected');
+            setIsConnected(false);
+        };
+
+        const handleError = (error) => {
+            console.error('Socket connection error:', error);
+            setIsConnected(false);
+        };
+
+        // Add event listeners
+        newSocket.on('connect', handleConnect);
+        newSocket.on('disconnect', handleDisconnect);
+        newSocket.on('connect_error', handleError);
+
+        setSocket(newSocket);
 
         // Cleanup function
         return () => {
-            if (socket) {
-                console.log('Cleaning up socket connection...');
-                socket.disconnect();
-            }
+            newSocket.off('connect', handleConnect);
+            newSocket.off('disconnect', handleDisconnect);
+            newSocket.off('connect_error', handleError);
+            newSocket.disconnect();
         };
     }, []);
 
-    const startGame = (gameData) => {
-        setGameData(gameData);
+    const startGame = (data) => {
+        console.log("Starting game with data:", data);
+        if (!data || !data.player1 || !data.player2) {
+            console.error("Invalid game data received:", data);
+            return;
+        }
+        setGameData(data);
         setGameState("board");
+        socket.emit("startGame", data);
     };
 
-    if (error) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-100">
-                <div className="bg-white p-8 rounded-lg shadow-md">
-                    <h2 className="text-2xl font-bold text-red-600 mb-4">Connection Error</h2>
-                    <p className="text-gray-600 mb-4">{error}</p>
-                    <div className="space-y-4">
-                        <button 
-                            onClick={() => window.location.reload()} 
-                            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 w-full"
-                        >
-                            Retry Connection
-                        </button>
-                        <button 
-                            onClick={() => navigate('/home')} 
-                            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 w-full"
-                        >
-                            Return to Home
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    // Add effect to log game state changes
+    useEffect(() => {
+        console.log("Game state changed:", { gameState, gameData });
+    }, [gameState, gameData]);
 
-    if (isLoading) {
+    if (!isConnected) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-100">
                 <div className="text-center">
@@ -131,13 +84,12 @@ function Game() {
     return (
         <div className="w-full h-full">
             {gameState === 'lobby' ? (
-                <GameLobby socket={socket} onGameStart={startGame} />
+                <GameLobby socket={socket} onGameStart={startGame} setGameData={setGameData} />
             ) : (
-                <GameBoard socket={socket} gameData={gameData} />
+                <GameBoard gameData={gameData} socket={socket} />
             )}
         </div>
     );
 }
 
 export default Game;
-// export{setSocket, gameState, gameData};

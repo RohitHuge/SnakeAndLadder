@@ -66,14 +66,26 @@ const handleSubmit = async (e) => {
           localStorage.setItem('token', data.token);
         }
         // Redirect to home page or dashboard
-        
         navigate('/home');
       } else {
-        setError(data.message || 'Login failed. Please check your credentials.');
+        // Handle specific error messages from the backend
+        if (data.message) {
+          setError(data.message);
+        } else if (response.status === 400) {
+          setError('Invalid email or password');
+        } else if (response.status === 401) {
+          setError('Please login to access this resource');
+        } else {
+          setError('An error occurred. Please try again later.');
+        }
       }
     } catch (err) {
-      setError('An error occurred. Please try again later.');
       console.error('Login error:', err);
+      if (err instanceof SyntaxError) {
+        setError('Server returned invalid response. Please try again later.');
+      } else {
+        setError('Network error. Please check your connection and try again.');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
 
 
-const GameLobby = ({ socket, onGameStart }) => {
+const GameLobby = ({ socket, onGameStart, setGameData }) => {
   // Current user data
   const location = useLocation();
   const [user, setUser] = useState(location.state?.user);
@@ -19,16 +19,21 @@ const GameLobby = ({ socket, onGameStart }) => {
   const [roomCode, setroomCode] = useState('Failed to get room code');
   const [copied, setCopied] = useState(false);
   const [opponent, setOpponent] = useState(null);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [pendingGameStart, setPendingGameStart] = useState(null);
   // const [socket, setSocket] = useState(null);
 
   useEffect(() => {
     if (!socket) return;
 
+    let isSubscribed = true;
+
     const handleLobbyEvents = async () => {
       try {
-        
         // Add socket event listeners
         socket.on("lobby-update", (data) => {
+          if (!isSubscribed) return;
+          
           if (data.type === "user-joined" && data.payload.username !== currentUser.username) {
             console.log("user-joined", data.payload.username);
             setOpponent({
@@ -38,7 +43,6 @@ const GameLobby = ({ socket, onGameStart }) => {
           } else if (data.type === "user-left") {
             setOpponent(null);
           } else if (data.type === "host-info") {
-            console.log("host-info", data.username);
             setOpponent({
               username: data.payload.username,
               avatar: data.payload.avatarUrl || 'https://readdy.ai/api/search-image?query=cute%2520cartoon%2520game%2520character%2520avatar%2520with%2520purple%2520background%252C%2520digital%2520art%252C%2520friendly%2520face%252C%2520game%2520icon%2520style%252C%2520minimalist%2520design%252C%2520clean%2520background%252C%2520high%2520quality&width=80&height=80&seq=avatar123&orientation=squarish'
@@ -46,67 +50,64 @@ const GameLobby = ({ socket, onGameStart }) => {
           }
         });
 
-        
+        socket.on("game-update", (data) => {
+          if (!isSubscribed) return;
+          
+          if (data.type === "game-started" && !gameStarted) {
+            setGameStarted(true);
+            console.log("game-started", data.payload.roomCode);
+            setPendingGameStart(data.payload.roomCode);
+          }
+        });
 
+        // Handle room creation/joining
         if (location.state?.isHost) {
-          const makeGameRoom = async () => {
-            try {
-              const response = await fetch(`${API_BASE_URL}/game/create-room`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json'
-                },
-                credentials: 'include',
-              });
-              
-              if (!response.ok) {
-                throw new Error('Failed to create game room');
-              }
-              
-              const data = await response.json();
-              setroomCode(data.data.roomCode);
-              return { roomCode: data.data.roomCode };
-            } catch (error) {
-              console.error("Error creating game room:", error);
-              throw error;
+          try {
+            const response = await fetch(`${API_BASE_URL}/game/create-room`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              credentials: 'include',
+            });
+            
+            if (!response.ok) {
+              throw new Error('Failed to create game room');
             }
-          };
-    
-          const gameRoomPromise = makeGameRoom();
-          gameRoomPromise.then(({ roomCode }) => {
-            socket.emit("createLobby", roomCode, currentUser);
-          });
-        } else {
-          const joinGameRoom = async () => {
-            try {
-              const response = await fetch(`${API_BASE_URL}/game/join-room`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({ roomCode: location.state?.roomCode }),
-              });
-              
-              if (!response.ok) {
-                throw new Error('Failed to join game room');
-              }
-              
-              const data = await response.json();
+            
+            const data = await response.json();
+            if (isSubscribed) {
               setroomCode(data.data.roomCode);
-              return { roomCode: data.data.roomCode };
-            } catch (error) {
-              console.error("Error joining game room:", error);
-              throw error;
+              socket.emit("createLobby", data.data.roomCode, currentUser);
             }
-          };
-    
-          const gameRoomPromise = joinGameRoom();
-          gameRoomPromise.then(({ roomCode }) => {
-            socket.emit("joinLobby", roomCode, currentUser);
-          });
+          } catch (error) {
+            console.error("Error creating game room:", error);
+          }
+        } else if (location.state?.roomCode) {
+          try {
+            const response = await fetch(`${API_BASE_URL}/game/join-room`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              credentials: 'include',
+              body: JSON.stringify({ roomCode: location.state.roomCode }),
+            });
+            
+            if (!response.ok) {
+              throw new Error('Failed to join game room');
+            }
+            
+            const data = await response.json();
+            if (isSubscribed) {
+              setroomCode(data.data.roomCode);
+              socket.emit("joinLobby", data.data.roomCode, currentUser);
+            }
+          } catch (error) {
+            console.error("Error joining game room:", error);
+          }
         }
         
       } catch (error) {
@@ -118,13 +119,30 @@ const GameLobby = ({ socket, onGameStart }) => {
 
     // Cleanup function
     return () => {
+      isSubscribed = false;
       if (socket) {
-        // socket.disconnect();
         socket.off("lobby-update");
+        socket.off("game-update");
         socket.off("host-info");
       }
     };
-  }, [socket, location.state?.isHost, currentUser]);
+  }, [socket, location.state?.isHost, location.state?.roomCode, currentUser]);
+
+  // Add new useEffect to handle opponent data updates
+  useEffect(() => {
+    if (gameStarted && pendingGameStart && opponent) {
+      const gameData = {
+        player1: currentUser,
+        player2: opponent,
+        roomCode: pendingGameStart
+      };
+      
+      console.log("Setting game data after opponent joined:", gameData);
+      setGameData(gameData);
+      onGameStart(gameData);
+      setPendingGameStart(null);
+    }
+  }, [opponent, gameStarted, pendingGameStart, currentUser, setGameData, onGameStart]);
 
   const [friends] = useState([
     {
@@ -191,13 +209,37 @@ const GameLobby = ({ socket, onGameStart }) => {
   };
 
   // Handle start game
-  const handleStartGame = () => {
-    console.log('Starting game...');
-    onGameStart({
-      roomCode,
-      currentUser,
-      opponent
-    });
+  const handleStartGame = async () => {
+    if (!opponent) {
+        console.error("Cannot start game without an opponent");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/game/start-game`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ roomCode }),
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to start game');
+        }
+
+        // const data = await response.json();
+        // const gameData = {
+        //     player1: currentUser,
+        //     player2: opponent,
+        //     roomCode: roomCode
+        // };
+
+    } catch (error) {
+        console.error("Error starting game:", error);
+    }
   };
 
   const [inputValue, setInputValue] = useState('');

@@ -1,43 +1,27 @@
-import { getSocketIO } from "../socket/socketServer.js";
 import { handleLobbyEvents } from "../socket/lobby.socket.js";
+import { handleGameEvents } from "../socket/game.socket.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
-export const activateSocket = async (req, res) => {
-    try {
-        const io = getSocketIO();
+let io;
 
-        io.on("connection", (socket) => {
-            console.log("New client connected:", socket.id);
-            handleLobbyEvents(socket);
-        });
+// Initialize socket connection handler
+export const initializeSocketHandlers = (socketIO) => {
+    io = socketIO;
+    io.on("connection", (socket) => {
+        console.log("New client connected:", socket.id);
+        handleLobbyEvents(socket, io);
 
-        // Send success response
-        res.status(200).json({
-            success: true,
-            message: "Socket server activated successfully"
+        // Handle game room joining
+        socket.on("startGame", (data) => {
+            // socket.join(data.roomCode);
+            handleGameEvents(socket, data);
         });
-    } catch (error) {
-        console.error("Error activating socket:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to activate socket server"
-        });
-    }
+    });
 };
 
-export const deactivateSocket = async (req, res) => {
-    try {
-        const io = getSocketIO();
-        io.removeAllListeners();
-        
-        res.status(200).json({
-            success: true,
-            message: "Socket server deactivated successfully"
-        });
-    } catch (error) {
-        console.error("Error deactivating socket:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to deactivate socket server"
-        });
-    }
+export const getSocketIO = () => {
+    return io;
 };
+
+
+
