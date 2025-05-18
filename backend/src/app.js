@@ -10,7 +10,7 @@ const httpServer = createServer(app);
 
 // CORS configuration
 app.use(cors({
-    origin: 'http://localhost:5173', // Your frontend URL
+    origin: ['http://localhost:5173','https://snakeandladder.pages.dev/'], // Your frontend URL
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -21,7 +21,7 @@ app.use(cors({
 // Initialize Socket.IO with CORS configuration
 const io = new Server(httpServer, {
     cors: {
-        origin: 'http://localhost:5173',
+        origin: ['http://localhost:5173','https://snakeandladder.pages.dev/'],
         methods: ["GET", "POST"],
         credentials: true
     }
