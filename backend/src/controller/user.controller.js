@@ -98,14 +98,18 @@ const loginUser = asyncHandler(async (req, res) => {
         sameSite: 'none',
         path: '/',
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        domain: 'onrender.com' // This will allow the cookie to work across subdomains
+        domain: 'snakeandladder.onrender.com' // Updated domain
     }
 
     return res.status(200)
         .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
         .json(
-            new ApiResponse(200, loggedInUser, "User logged in successfully")
+            new ApiResponse(200, {
+                user: loggedInUser,
+                accessToken, // Send token in response body as well
+                refreshToken
+            }, "User logged in successfully")
         )
     
     

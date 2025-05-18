@@ -30,6 +30,11 @@ export const api = {
         throw new ApiError(response.status, data.message || 'API request failed');
       }
 
+      // If this is a login response, store the token
+      if (data.data?.accessToken) {
+        localStorage.setItem('token', data.data.accessToken);
+      }
+
       return data;
     } catch (error) {
       if (error instanceof ApiError) {
@@ -63,4 +68,4 @@ export const api = {
   delete(endpoint, options = {}) {
     return this.request(endpoint, { ...options, method: 'DELETE' });
   },
-}; 
+};

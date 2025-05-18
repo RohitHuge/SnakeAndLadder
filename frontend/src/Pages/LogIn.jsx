@@ -49,13 +49,13 @@ const Login = () => {
     if (validateForm()) {
       setIsLoading(true);
       try {
-        const data = await api.post('/users/login', {
+        const response = await api.post('/users/login', {
           email,
           password,
         });
 
-        // Login successful
-        login(data.token, data.user);
+        // Login successful - response.data now contains user, accessToken, and refreshToken
+        login(response.data.accessToken, response.data.user);
         navigate('/home');
       } catch (err) {
         console.error('Login error:', err);
