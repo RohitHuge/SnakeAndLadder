@@ -3,34 +3,49 @@ import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
 
-
-
 export const verifyJWT = asyncHandler(async (req, _, next) => {
-    
   try {
-      const accessToken = req.cookies?.accessToken || req.headers["authorization"]?.replace("Bearer ", "");
+      console.log("Cookies:", req.cookies);
+      console.log("Headers:", req.headers);
+      
+      // Try to get token from cookie first
+      let accessToken = req.cookies?.accessToken;
+      
+      // If no cookie, try Authorization header
+      if (!accessToken) {
+          const authHeader = req.headers["authorization"];
+          if (authHeader) {
+              accessToken = authHeader.replace("Bearer ", "");
+          }
+      }
   
       if(!accessToken) {
-          throw new ApiError(401, "Please login to access this resource 1 :: failed to get cookie");
+          console.log("No access token found in cookies or headers");
+          throw new ApiError(401, "Please login to access this resource");
       }
   
-      const decoded = jwt.verify(accessToken, process.env.ACCESS_SECRET);
+      try {
+          const decoded = jwt.verify(accessToken, process.env.ACCESS_SECRET);
+          console.log("Decoded token:", decoded);
   
-      if(!decoded) {
-          throw new ApiError(401, "Please login to access this resource 2 :: failed to verify token");
+          if(!decoded) {
+              throw new ApiError(401, "Invalid token");
+          }
+  
+          const user = await User.findById(decoded._id);
+          
+          if(!user) {
+              throw new ApiError(401, "User not found");
+          }
+  
+          req.user = user;
+          next();
+      } catch (jwtError) {
+          console.log("JWT verification error:", jwtError);
+          throw new ApiError(401, "Invalid or expired token");
       }
-  
-      const user = await User.findById(decoded._id);
-      
-      if(!user) {
-          throw new ApiError(401, "Please login to access this resource 3 :: failed to find user");
-      }
-  
-      req.user = user;
-  
-      next();
   } catch (error) { 
-    throw new ApiError(401, error.message || "Please login to access this resource 4 :: failed to verify token");
-    
+      console.log("Auth middleware error:", error);
+      throw new ApiError(401, error.message || "Authentication failed");
   }
 });
