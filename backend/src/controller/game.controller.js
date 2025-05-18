@@ -1,6 +1,6 @@
 import {asyncHandler} from "../utils/asyncHandler.js";
 import GameRoom from "../models/gameRoom.models.js";
-import {ApiError} from "../utils/apiError.js";
+import {ApiError} from "../utils/ApiError.js";
 import {ApiResponse} from "../utils/apiResponse.js";
 import {nanoid} from "nanoid";
 import { User } from "../models/user.model.js";
