@@ -1,10 +1,19 @@
-import { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { initializeSocket, disconnectSocket } from '../utils/socket';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (token) {
+      initializeSocket(token);
+    } else {
+      disconnectSocket();
+    }
+  }, [token]);
 
   const login = (newToken, userData) => {
     setToken(newToken);
@@ -16,6 +25,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
+    disconnectSocket();
   };
 
   return (
