@@ -96,9 +96,9 @@ const loginUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        domain: '.onrender.com',
         path: '/',
-        maxAge: 24 * 60 * 60 * 1000
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        domain: 'onrender.com' // This will allow the cookie to work across subdomains
     }
 
     return res.status(200)
