@@ -6,6 +6,31 @@ import {nanoid} from "nanoid";
 import { User } from "../models/user.model.js";
 import { getSocketIO } from "./socket.controller.js";
 
+const ladders = {
+    3: 22,
+    5: 8,
+    11: 26,
+    20: 41,
+    27: 84,
+    35: 44,
+    50: 67,
+    70: 90,
+    77: 98
+  };
+
+  const snakes = {
+    17: 7,
+    30: 12,
+    39: 21,
+    47: 25,
+    56: 37,
+    63: 59,
+    72: 52,
+    88: 45,
+    95: 75,
+    99: 58
+  };
+//GAME CONTROLLER
 const createGameRoom = asyncHandler(async (req, res) => {
     try {
         const user = req.user;
@@ -180,7 +205,67 @@ const startGame = asyncHandler(async (req, res) => {
 });
 
 
-export { createGameRoom , joinGameRoom, deleteGameRoom, leaveGameRoom, startGame};
+//GAME FUNCTIONS
+const movePlayer = (roll,currentPosition) => {
+    try {
+
+        const newPosition = currentPosition + roll;
+
+        if(newPosition > 100){
+            return (
+                {
+                    success: false,
+                    message: "Too far! You need exactly ${100 - playerPositions[playerIndex]} to win."
+                }
+            )
+        }
+
+        if(ladders[newPosition]){
+            newPosition = ladders[newPosition];
+        }
+
+        if(snakes[newPosition]){
+            newPosition = snakes[newPosition];
+        }
+
+        return newPosition;
+
+    } catch (error) {
+        console.log("Error in movePlayer::controller", error);
+        
+    }
+}
+
+// const findPlayerByUsername = asyncHandler(async (req, res) => {
+//     try {
+//         const { roomCode, username } = req.body;
+        
+//         const gameRoom = await GameRoom.findOne({ roomCode });
+        
+//         if (!gameRoom) {
+//             throw new ApiError(404, "Game room not found");
+//         }
+
+//         const player = gameRoom.players.find(player => player.username === username);
+        
+//         if (!player) {
+//             throw new ApiError(404, "Player not found in this game room");
+//         }
+
+//         res.status(200).json(new ApiResponse(200, player, "Player found successfully"));
+//     } catch (error) {
+//         console.log("Error in findPlayerByUsername::controller", error);
+//         throw new ApiError(500, "Error in findPlayerByUsername::controller");
+//     }
+// });
+
+export { createGameRoom , 
+    joinGameRoom, 
+    deleteGameRoom, 
+    leaveGameRoom, 
+    startGame,
+    movePlayer,
+};
 
 
 

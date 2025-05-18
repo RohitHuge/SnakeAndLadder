@@ -11,10 +11,6 @@ export const initializeSocketHandlers = (socketIO) => {
         console.log("New client connected:", socket.id);
         handleLobbyEvents(socket, io);
 
-        // Handle game room joining
-        // socket.on("startGame", (data) => {
-        //     handleGameEvents(socket, data);
-        // });
     });
 };
 

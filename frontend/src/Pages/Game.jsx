@@ -11,6 +11,8 @@ function Game() {
     const [socket, setSocket] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
     const navigate = useNavigate();
+    const [playingUser, setPlayingUser] = useState(null);
+    // const [user, setUser] = useState(location.state?.user);
 
     useEffect(() => {
         // Create socket instance
@@ -84,9 +86,9 @@ function Game() {
     return (
         <div className="w-full h-full">
             {gameState === 'lobby' ? (
-                <GameLobby socket={socket} onGameStart={startGame} setGameData={setGameData} />
+                <GameLobby socket={socket} onGameStart={startGame} setGameData={setGameData} setPlayingUser={setPlayingUser} />
             ) : (
-                <GameBoard gameData={gameData} socket={socket} />
+                <GameBoard gameData={gameData} socket={socket} playingUser={playingUser} />
             )}
         </div>
     );

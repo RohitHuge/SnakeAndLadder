@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
-const GameBoard = ({ gameData, socket }) => {
+const GameBoard = ({ gameData, socket , playingUser}) => {
   const navigate = useNavigate();
   // Add logging for game data
   // Game state
@@ -13,6 +13,7 @@ const GameBoard = ({ gameData, socket }) => {
   const [gameMessage, setGameMessage] = useState("Player 1's turn to roll");
   const [winner, setWinner] = useState(null);
   const [showWinModal, setShowWinModal] = useState(false);
+  const [playingPlayer, setPlayingPlayer] = useState(null);
   
   // Player positions (1-100)
   const [playerPositions, setPlayerPositions] = useState([1, 1]);
@@ -32,6 +33,14 @@ const GameBoard = ({ gameData, socket }) => {
 
   }, [isRolling]);
 
+  useEffect(() => {
+    if(playingPlayer === gameData.player1.username){
+      setCurrentPlayer(1);
+    }else{
+      setCurrentPlayer(2);
+    }
+  }, [playingPlayer]);
+
 
   useEffect(() => {
     socket.on("exitGame", () => {
@@ -39,18 +48,24 @@ const GameBoard = ({ gameData, socket }) => {
     });
     socket.on("GameStatus", (data) => {
       if (data.type === "initiateGame") {
-        setCurrentPlayer(data.data.turn.username === gameData.player1.username ? 1 : 2);
-        setPlayerPositions([data.data.P1position, data.data.P2position]);
-      }
+
+        setPlayingPlayer(data.data.turn.username);
+        }
       if (data.type === "rollDice-start") {
         setIsRolling(true);
       }
       if (data.type === "rollDice-end") {
+        console.log("rollDice-end");
         setDiceRoll(data.data.roll);
-        movePlayer(data.data.roll);
+        setPlayerPositions(data.data.playerPosition);
+        setPlayingPlayer(data.data.nextPlayer.username);
+        // movePlayer(data.data.roll);
         setIsRolling(false);
       }
     });
+
+    console.log(playingUser);
+    console.log(playingPlayer);
 
   }, []);
 
@@ -122,64 +137,65 @@ const GameBoard = ({ gameData, socket }) => {
 
     socket.emit("rollDice", {
       roomCode: gameData.roomCode,
+      currentPlayer: playingPlayer,
     });
     
     
   };
 
   // Function to move player
-  const movePlayer = (roll) => {
-    const playerIndex = currentPlayer - 1;
-    let newPosition = playerPositions[playerIndex] + roll;
+  // const movePlayer = (roll) => {
+  //   const playerIndex = currentPlayer - 1;
+  //   let newPosition = playerPositions[playerIndex] + roll;
 
-    // Check if player wins
-    if (newPosition === 100) {
-      const newPositions = [...playerPositions];
-      newPositions[playerIndex] = newPosition;
-      setPlayerPositions(newPositions);
-      setWinner(currentPlayer);
-      setGameMessage(`Player ${currentPlayer} wins!`);
-      setShowWinModal(true);
-      return;
-    }
+  //   // Check if player wins
+  //   if (newPosition === 100) {
+  //     const newPositions = [...playerPositions];
+  //     newPositions[playerIndex] = newPosition;
+  //     setPlayerPositions(newPositions);
+  //     setWinner(currentPlayer);
+  //     setGameMessage(`Player ${currentPlayer} wins!`);
+  //     setShowWinModal(true);
+  //     return;
+  //   }
 
-    // Check if player goes beyond 100
-    if (newPosition > 100) {
-      setGameMessage(`Too far! You need exactly ${100 - playerPositions[playerIndex]} to win.`);
-      setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-      setTimeout(() => {
-        setGameMessage(`Player ${currentPlayer === 1 ? 2 : 1}'s turn to roll`);
-      }, 2000);
-      return;
-    }
+  //   // Check if player goes beyond 100
+  //   if (newPosition > 100) {
+  //     setGameMessage(`Too far! You need exactly ${100 - playerPositions[playerIndex]} to win.`);
+  //     setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
+  //     setTimeout(() => {
+  //       setGameMessage(`Player ${currentPlayer === 1 ? 2 : 1}'s turn to roll`);
+  //     }, 2000);
+  //     return;
+  //   }
 
-    // Check for ladder
-    if (ladders[newPosition]) {
-      setTimeout(() => {
-        setGameMessage(`Yay! Climbed up a ladder from ${newPosition} to ${ladders[newPosition]}!`);
-      }, 500);
-      newPosition = ladders[newPosition];
-    }
+  //   // Check for ladder
+  //   if (ladders[newPosition]) {
+  //     setTimeout(() => {
+  //       setGameMessage(`Yay! Climbed up a ladder from ${newPosition} to ${ladders[newPosition]}!`);
+  //     }, 500);
+  //     newPosition = ladders[newPosition];
+  //   }
 
-    // Check for snake
-    if (snakes[newPosition]) {
-      setTimeout(() => {
-        setGameMessage(`Oops! Slid down a snake from ${newPosition} to ${snakes[newPosition]}!`);
-      }, 500);
-      newPosition = snakes[newPosition];
-    }
+  //   // Check for snake
+  //   if (snakes[newPosition]) {
+  //     setTimeout(() => {
+  //       setGameMessage(`Oops! Slid down a snake from ${newPosition} to ${snakes[newPosition]}!`);
+  //     }, 500);
+  //     newPosition = snakes[newPosition];
+  //   }
 
-    // Update player position
-    const newPositions = [...playerPositions];
-    newPositions[playerIndex] = newPosition;
-    setPlayerPositions(newPositions);
+  //   // Update player position
+  //   const newPositions = [...playerPositions];
+  //   newPositions[playerIndex] = newPosition;
+  //   setPlayerPositions(newPositions);
 
-    // Switch turns
-    // setTimeout(() => {
-    //   setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-    //   setGameMessage(`Player ${currentPlayer === 1 ? 2 : 1}'s turn to roll`);
-    // }, 2000);
-  };
+  //   // Switch turns
+  //   // setTimeout(() => {
+  //   //   setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
+  //   //   setGameMessage(`Player ${currentPlayer === 1 ? 2 : 1}'s turn to roll`);
+  //   // }, 2000);
+  // };
 
   // Function to restart game
   const restartGame = () => {
@@ -351,13 +367,13 @@ const GameBoard = ({ gameData, socket }) => {
         className: "bg-gray-400 cursor-not-allowed"
       };
     }
-    if (currentPlayer !== 1) {
-      return {
-        disabled: true,
-        text: `${gameData.player2.username}'s turn`,
-        className: "bg-gray-400 cursor-not-allowed"
-      };
-    }
+    // if (playingPlayer !== playingUser.username) {
+    //   return {
+    //     disabled: true,
+    //     text: `${playingPlayer}'s turn`,
+    //     className: "bg-gray-400 cursor-not-allowed"
+    //   };
+    // }
     return {
       disabled: false,
       text: "Roll Dice",

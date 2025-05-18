@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
 
 
-const GameLobby = ({ socket, onGameStart, setGameData }) => {
+const GameLobby = ({ socket, onGameStart, setGameData, setPlayingUser }) => {
   // Current user data
   const location = useLocation();
   const [user, setUser] = useState(location.state?.user);
@@ -13,9 +13,11 @@ const GameLobby = ({ socket, onGameStart, setGameData }) => {
   const [currentUser] = useState({
     username: user?.username,
     avatar: user?.avatarUrl || 'https://readdy.ai/api/search-image?query=cute%2520cartoon%2520game%2520character%2520avatar%2520with%2520purple%2520background%252C%2520digital%2520art%252C%2520friendly%2520face%252C%2520game%2520icon%2520style%252C%2520minimalist%2520design%252C%2520clean%2520background%252C%2520high%2520quality&width=80&height=80&seq=avatar123&orientation=squarish',
-    isHost: location.state?.isHost
+    isHost: location.state?.isHost,
+    position: 1
   });
-  
+  setPlayingUser(currentUser);
+
   const [roomCode, setroomCode] = useState('Failed to get room code');
   const [copied, setCopied] = useState(false);
   const [opponent, setOpponent] = useState(null);
@@ -131,11 +133,20 @@ const GameLobby = ({ socket, onGameStart, setGameData }) => {
   // Add new useEffect to handle opponent data updates
   useEffect(() => {
     if (gameStarted && pendingGameStart && opponent) {
-      const gameData = {
-        player1: currentUser,
-        player2: opponent,
-        roomCode: pendingGameStart
-      };
+      let gameData;
+      if (currentUser.isHost) {
+        gameData = {
+          player1: currentUser,
+          player2: opponent,
+          roomCode: pendingGameStart
+        };
+      }else{
+        gameData = {
+          player1: opponent,
+          player2: currentUser,
+          roomCode: pendingGameStart
+        };
+      }
       
       console.log("Setting game data after opponent joined:", gameData);
       setGameData(gameData);

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createGameRoom, joinGameRoom, deleteGameRoom, startGame } from "../controller/game.controller.js";
+import { createGameRoom, joinGameRoom, deleteGameRoom, startGame,  } from "../controller/game.controller.js";
 import { verifyJWT } from "../middleware/auth.js";
 
 

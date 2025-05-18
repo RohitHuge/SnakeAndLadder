@@ -1,6 +1,7 @@
 import GameRoom from "../models/gameRoom.models.js";
 import { User } from "../models/user.model.js";
 import { getSocketIO } from "../controller/socket.controller.js";
+import { movePlayer } from "../controller/game.controller.js";
 
 export const handleGameEvents = async (socket, data) => {
     const io = getSocketIO();
@@ -27,15 +28,33 @@ export const handleGameEvents = async (socket, data) => {
         io.in(data.roomCode).emit("GameStatus", {
             type: "rollDice-start",
         });
+        const gameRoom = await GameRoom.findOne({ roomCode: data.roomCode });
+       
+        const currentPlayer = gameRoom.players.find(player => player.username.toString() === data.currentPlayer);
 
         const roll = Math.floor(Math.random() * 6) + 1;
+
+        const newPosition = await movePlayer(roll, currentPlayer.position);
+
+        const nextPlayer = gameRoom.players.find(player => player.username.toString() !== data.currentPlayer);
+
+        
+        currentPlayer.position = newPosition;
+        await gameRoom.save();
+
+        const playerPosition = [gameRoom.players[0].position, gameRoom.players[1].position];
+
         setTimeout(() => {
             io.in(data.roomCode).emit("GameStatus", {
                 type: "rollDice-end",
                 data: {
-                    roll: roll
+                    roll,
+                    newPosition,
+                    nextPlayer,
+                    playerPosition
                 }
             });
+            console.log(newPosition,playerPosition);
         }, 3000);
     });
 
