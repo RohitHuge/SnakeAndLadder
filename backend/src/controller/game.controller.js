@@ -18,7 +18,7 @@ const ladders = {
     77: 98
   };
 
-  const snakes = {
+const snakes = {
     17: 7,
     30: 12,
     39: 21,
@@ -209,7 +209,7 @@ const startGame = asyncHandler(async (req, res) => {
 const movePlayer = (roll,currentPosition) => {
     try {
 
-        const newPosition = currentPosition + roll;
+        let newPosition = currentPosition + roll;
 
         if(newPosition > 100){
             return (

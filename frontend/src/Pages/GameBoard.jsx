@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 
 const GameBoard = ({ gameData, socket , playingUser}) => {
   const navigate = useNavigate();
-  // Add logging for game data
+
+
   // Game state
   const [currentPlayer, setCurrentPlayer] = useState(1);
   const [diceRoll, setDiceRoll] = useState(null);
@@ -13,7 +14,7 @@ const GameBoard = ({ gameData, socket , playingUser}) => {
   const [gameMessage, setGameMessage] = useState("Player 1's turn to roll");
   const [winner, setWinner] = useState(null);
   const [showWinModal, setShowWinModal] = useState(false);
-  const [playingPlayer, setPlayingPlayer] = useState(null);
+  const [playingPlayer, setPlayingPlayer] = useState(gameData.player1.username);
   
   // Player positions (1-100)
   const [playerPositions, setPlayerPositions] = useState([1, 1]);
@@ -55,7 +56,6 @@ const GameBoard = ({ gameData, socket , playingUser}) => {
         setIsRolling(true);
       }
       if (data.type === "rollDice-end") {
-        console.log("rollDice-end");
         setDiceRoll(data.data.roll);
         setPlayerPositions(data.data.playerPosition);
         setPlayingPlayer(data.data.nextPlayer.username);
@@ -367,13 +367,13 @@ const GameBoard = ({ gameData, socket , playingUser}) => {
         className: "bg-gray-400 cursor-not-allowed"
       };
     }
-    // if (playingPlayer !== playingUser.username) {
-    //   return {
-    //     disabled: true,
-    //     text: `${playingPlayer}'s turn`,
-    //     className: "bg-gray-400 cursor-not-allowed"
-    //   };
-    // }
+    if (playingPlayer !== playingUser.username) {
+      return {
+        disabled: true,
+        text: `${playingPlayer}'s turn`,
+        className: "bg-gray-400 cursor-not-allowed"
+      };
+    }
     return {
       disabled: false,
       text: "Roll Dice",
