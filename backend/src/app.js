@@ -16,7 +16,8 @@ app.use(cors({
     exposedHeaders: ['Set-Cookie'],
     credentials: true,
     preflightContinue: false,
-    optionsSuccessStatus: 204
+    optionsSuccessStatus: 204,
+    maxAge: 86400 // 24 hours
 }));
 
 // Initialize Socket.IO with CORS configuration
