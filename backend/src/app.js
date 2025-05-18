@@ -10,9 +10,10 @@ const httpServer = createServer(app);
 
 // CORS configuration
 app.use(cors({
-    origin: ['http://localhost:5173','https://snakeandladder.pages.dev/'], // Your frontend URL
+    origin: ['http://localhost:5173', 'https://snakeandladder.pages.dev'], // Removed trailing slash
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    exposedHeaders: ['Set-Cookie'],
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204
@@ -21,8 +22,9 @@ app.use(cors({
 // Initialize Socket.IO with CORS configuration
 const io = new Server(httpServer, {
     cors: {
-        origin: ['http://localhost:5173','https://snakeandladder.pages.dev/'],
-        methods: ["GET", "POST"],
+        origin: ['http://localhost:5173', 'https://snakeandladder.pages.dev'],
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
         credentials: true
     }
 });
