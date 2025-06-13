@@ -34,31 +34,6 @@ This project was created as a **learning journey to master Full Stack Developmen
 - Signup/Login and Session Handling.
 - Profile Avatar and Display.
 
-### 🌐 UI Pages
-
-- Home screen featuring game mode options: Start Game, Join Game, Friends, and History.
-
-![Snake And Ladder - LandingPage.jpg](%F0%9F%90%8D%20Snake%20&%20Ladder%20MERN%20Stack%20Project%20Report%202116a508bb5280b98871c03d41121d14/Snake_And_Ladder_-_LandingPage.jpg)
-
----
-
-- Home Page
-
-![Snake And Ladder - Home.png](%F0%9F%90%8D%20Snake%20&%20Ladder%20MERN%20Stack%20Project%20Report%202116a508bb5280b98871c03d41121d14/Snake_And_Ladder_-_Home.png)
-
----
-
-- Game Lobby
-
-![Snake And Ladder - GameLobby.png](%F0%9F%90%8D%20Snake%20&%20Ladder%20MERN%20Stack%20Project%20Report%202116a508bb5280b98871c03d41121d14/Snake_And_Ladder_-_GameLobby.png)
-
----
-
-Game Board
-
-![Snake And Ladder - GameBoard.png](%F0%9F%90%8D%20Snake%20&%20Ladder%20MERN%20Stack%20Project%20Report%202116a508bb5280b98871c03d41121d14/Snake_And_Ladder_-_GameBoard.png)
-
----
 
 ## ⚠️ Challenges Faced
 
