@@ -9,6 +9,10 @@ const App = () => {
     navigate('/login');
   };
 
+  const handleRegister = () => {
+      navigate('/register')
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-white">
       <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -49,7 +53,7 @@ const App = () => {
                 Play Now
               </button>
               <button
-                onClick={() => navigate('/register')}
+                onClick= {handleRegister}
                 className="!rounded-button whitespace-nowrap text-indigo-700 hover:text-indigo-900 font-medium py-2 px-6 transition-all duration-300 underline underline-offset-4 cursor-pointer"
               >
                 New Player? Register Here

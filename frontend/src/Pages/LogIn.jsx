@@ -1,12 +1,10 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { api } from '../utils/api';
+import { useNavigate } from 'react-router-dom';
+import authService from '../appwrite/auth.js';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -49,13 +47,11 @@ const Login = () => {
     if (validateForm()) {
       setIsLoading(true);
       try {
-        const response = await api.post('/users/login', {
+        const response = await authService.login({
           email,
           password,
         });
-
-        // Login successful - response.data now contains user, accessToken, and refreshToken
-        login(response.data.accessToken, response.data.user);
+        console.log(response);
         navigate('/home');
       } catch (err) {
         console.error('Login error:', err);
@@ -71,6 +67,13 @@ const Login = () => {
       }
     }
   };
+
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      navigate('/home');
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-white">

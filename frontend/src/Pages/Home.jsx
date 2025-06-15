@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
+import authService from '../appwrite/auth.js';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -13,36 +14,15 @@ const Home = () => {
     gamesWon: 0,
     status: 'offline'
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [roomCode, setRoomCode] = useState('');
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/users/current-user`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch user data');
-        }
-
-        const { data: userData } = await response.json();
-        setUser(userData);
-      } catch (err) {
-        setError('Failed to load user data');
-        console.error('Error fetching user data:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserData();
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
   }, []);
 
   const handleCreateGame = async () => {
@@ -66,15 +46,8 @@ const Home = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/logout`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-        }
-      });
-
-      if (response.ok) {
+      const response = await authService.logout();
+      if (response) {
         navigate('/login');
       }
     } catch (err) {

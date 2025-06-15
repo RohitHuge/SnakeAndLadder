@@ -1,8 +1,9 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
+import authService from '../appwrite/auth';
 
 const Registration = () => {
   const [username, setUsername] = useState('');
@@ -92,34 +93,63 @@ const handleSubmit = async (e) => {
         formData.append('avatar', avatar);
       }
 
-      const response = await fetch(`${API_BASE_URL}/users/register`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        body: formData,
-      });
+      const response = await authService.createAccount(
+        {
+          email: formData.get('email'),
+          password: formData.get('password'),
+          name: formData.get('username')
+        }
+      )
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+      if (!response) {
+        setError(response.message);
+        return;
       }
-
+      console.log(response);
+      navigate('/home');
+      // const res = await fetch(`${API_BASE_URL}/registrationdata`, {
+      //   headers: {
+      //     'Content-Type': 'application/json'
+      //   },
+      //   method: 'POST',
+      //   body: JSON.stringify({
+      //     username: formData.get('username'),
+      //     email: formData.get('email'),
+      //     password: formData.get('password'),
+      //     avatar: formData.get('avatar') ? formData.get('avatar') : null
+      //   })
+      // })
+      // if (!res.ok) {
+      //   setError(res.message);
+      //   return;
+      // }
+      // const data = await res.json();
+      // console.log(data);
       // Registration successful
-      setIsLoading(false);
-      setError('Registration successful! Redirecting to login...');
-      
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+
+
       
     } catch (err) {
-      setIsLoading(false);
       setError(err.message || 'Registration failed. Please try again.');
+      return;
+    } finally {
+      setIsLoading(false);
     }
   }
 };
+
+useEffect(() => {
+  const currentUser = authService.getCurrentUser();
+  console.log(currentUser);
+  if (currentUser) {
+    const res = authService.logout();
+    console.log(res);
+  }else{
+    return
+  }
+
+
+}, []);
 return (
 <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-white">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet" />
