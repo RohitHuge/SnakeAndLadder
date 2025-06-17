@@ -3,16 +3,13 @@ import { SOCKET_BASE_URL } from '../config';
 
 let socket = null;
 
-export const initializeSocket = (token) => {
+export const initializeSocket = () => {
   if (socket) {
     return socket;
   }
 
   socket = io(SOCKET_BASE_URL, {
     transports: ['websocket'],
-    auth: {
-      token
-    },
     withCredentials: true,
     reconnection: true,
     reconnectionAttempts: 5,

@@ -4,10 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import authService from '../appwrite/auth.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const Home = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState({
+  const { user, setUser } = useAuth();
+  const { socket, setSocket } = useAuth();
+  const [currentUser, setCurrentUser] = useState({
     username: '',
     avatarUrl: '',
     gamesPlayed: 0,
@@ -19,37 +22,22 @@ const Home = () => {
   const [roomCode, setRoomCode] = useState('');
 
   useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
+    setCurrentUser(currentUser.username = user.name);
+    console.log(user,socket);
   }, []);
 
   const handleCreateGame = async () => {
-    navigate('/game', {
-      state: {
-        isHost: true,
-        user : user
-      }
-    });
+    navigate('/game')
   }
 
   const handleJoinGame = async () => {
-    navigate('/game', {
-        state: {
-            isHost: false,
-            user: user,
-            roomCode: roomCode
-        }
-    });
+    navigate('/game')
   }
 
   const handleLogout = async () => {
     try {
       const response = await authService.logout();
-      if (response) {
-        navigate('/login');
-      }
+      navigate('/login');
     } catch (err) {
       console.error('Logout error:', err);
     }
@@ -102,7 +90,7 @@ const Home = () => {
                 alt="User Avatar" 
                 className="w-10 h-10 rounded-full border-2 border-purple-400"
               />
-              <span className="ml-3 font-medium text-purple-800">{user.username}</span>
+              <span className="ml-3 font-medium text-purple-800">{currentUser.username}</span>
             </div>
             <button 
               onClick={handleLogout}
@@ -118,7 +106,9 @@ const Home = () => {
         <main>
           {/* Welcome message */}
           <div className="text-center mb-10">
-            <h2 className="text-2xl font-semibold text-purple-800 mb-2">Welcome back, {user.username.toUpperCase()}!</h2>
+            <h2 className="text-2xl font-semibold text-purple-800 mb-2">
+              Welcome back, {currentUser.username ? currentUser.username.toUpperCase() : 'Player'}!
+            </h2>
             <p className="text-gray-600">What would you like to do today?</p>
           </div>
 

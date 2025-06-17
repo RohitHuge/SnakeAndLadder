@@ -1,7 +1,8 @@
 import { Client, Account, ID } from "appwrite";
 import { APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } from '../config.js';
 import api from '../axious.js';
-import { useAuth } from '../context/AuthContext.jsx';
+import { initializeSocket } from '../utils/socket.js';
+
 
 export class AuthService {
     client = new Client();
@@ -12,7 +13,7 @@ export class AuthService {
             .setEndpoint(APPWRITE_ENDPOINT)
             .setProject(APPWRITE_PROJECT_ID);
         this.account = new Account(this.client);
-            
+          
     }
 
     async createAccount({email, password, name}) {
@@ -31,18 +32,29 @@ export class AuthService {
         }
     }
 
-    async login({email, password}) {
+    async login({email, password, setUser, setSocket}) {
         try {
             const session = await this.account.createEmailPasswordSession(email, password);
-            console.log(session);
             if (!session) {
                 throw new Error('Invalid email or password');
             }
 
             const jwt = await this.account.createJWT();
             api.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
-            console.log(jwt);
-            const currentUser = useAuth();
+            const currentUser = await this.account.get();
+
+            setUser({
+                id: currentUser.$id,
+                name: currentUser.name,
+                email: currentUser.email,
+                role: currentUser.role,
+                token: jwt,
+                // avatar: account.prefs.avatar,
+            });
+
+            const socket = initializeSocket();
+            setSocket(socket);
+
 
             return currentUser;
         } catch (error) {
@@ -71,10 +83,19 @@ export class AuthService {
             console.log("Appwrite serive :: logout :: error", error);
         }
     }
+
+    async getCurrentUser() {
+        try {
+            return await this.account.get();
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 const authService = new AuthService();
 
 export default authService
+
 
 

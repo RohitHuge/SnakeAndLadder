@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../appwrite/auth.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const Login = () => {
+  const { user, setUser, socket, setSocket } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,6 +52,8 @@ const Login = () => {
         const response = await authService.login({
           email,
           password,
+          setUser,
+          setSocket,
         });
         console.log(response);
         navigate('/home');
@@ -71,8 +75,10 @@ const Login = () => {
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
     if (currentUser) {
-      authService.logout();
-      // navigate('/home');
+      const currentuserdata = authService.getCurrentUser();
+      setUser(currentuserdata);
+      
+      navigate('/home');
     } 
   }, []);
 

@@ -10,11 +10,12 @@ export const AuthProvider = ({ children }) => {
     email: '',
     role: '',
     token: '',
+    avatar: '',
   });
-  const [socket, setSocket] = useState(null);
+  const [socket, setSocket] = useState({});
 
   return (
-    <AuthContext.Provider value={{  }}>
+    <AuthContext.Provider value={{ user, setUser, socket, setSocket }}>
       {children}
     </AuthContext.Provider>
   );
