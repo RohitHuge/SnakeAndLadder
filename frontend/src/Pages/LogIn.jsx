@@ -1,6 +1,6 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import authService from '../appwrite/auth.js';
 
 const Login = () => {
@@ -71,8 +71,9 @@ const Login = () => {
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
     if (currentUser) {
-      navigate('/home');
-    }
+      authService.logout();
+      // navigate('/home');
+    } 
   }, []);
 
   return (

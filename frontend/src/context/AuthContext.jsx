@@ -4,13 +4,14 @@ import { initializeSocket, disconnectSocket } from '../utils/socket';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // const [token, setToken] = useState(localStorage.getItem('token'));
-  // const [user, setUser] = useState(null);
-
-
-
-
-
+  const [user, setUser] = useState({
+    id: '',
+    name: '',
+    email: '',
+    role: '',
+    token: '',
+  });
+  const [socket, setSocket] = useState(null);
 
   return (
     <AuthContext.Provider value={{  }}>

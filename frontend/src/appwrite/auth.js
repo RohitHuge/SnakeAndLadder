@@ -1,6 +1,7 @@
 import { Client, Account, ID } from "appwrite";
 import { APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } from '../config.js';
 import api from '../axious.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export class AuthService {
     client = new Client();
@@ -33,7 +34,7 @@ export class AuthService {
     async login({email, password}) {
         try {
             const session = await this.account.createEmailPasswordSession(email, password);
-
+            console.log(session);
             if (!session) {
                 throw new Error('Invalid email or password');
             }
@@ -41,8 +42,9 @@ export class AuthService {
             const jwt = await this.account.createJWT();
             api.defaults.headers.common['Authorization'] = `Bearer ${jwt}`;
             console.log(jwt);
-            
-            return session;
+            const currentUser = useAuth();
+
+            return currentUser;
         } catch (error) {
             throw error;
         }
